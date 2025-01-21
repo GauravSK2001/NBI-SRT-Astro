@@ -1,5 +1,5 @@
 from Controls import Rot2Prog
-from Tracking import G2E
+from Tracking import G2E , source_tracking
 
 
 
@@ -74,3 +74,27 @@ if __name__=='__main__':
         else:
             print('Invalid Comand')
 
+        Live=True
+
+        if In[0]=='T':
+                current_pointing=None
+                if len(In)==3:
+                    L=float(In[1])
+                    B=float(In[2])
+                    Source=source_tracking()
+                    if current_pointing==None:
+                        current_pointing=Source.pointing(L,B)
+                    while Live:
+                        
+
+                        
+                        
+                    
+                    
+                    az,el=conv.Convert(L,B)
+                    az,el=int(az),int(el)
+                    if conv.Check_if_allowed_el(el):
+                        control.point(az,el)
+                        print(f'Pointing Toward ({L:.2f},{B:.2f})')
+                    else:
+                        print(f'Not Valid Pointing for the Time and coordinate')
