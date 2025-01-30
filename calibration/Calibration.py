@@ -53,7 +53,7 @@ class Calibration:
         self.Cold_temperature= T_cold
         return T_cold
     
-    def Hot_temperature(self,Calibration_surface_temperature):
+    def hot_temperature(self,Calibration_surface_temperature):
         
         T_hot= Calibration_surface_temperature
         self.Hot_temperature= T_hot
@@ -76,6 +76,8 @@ class Calibration:
         
         Tcal= m*Power + b
         return Tcal
+    
+
     
     def Plotter(self):
         '''
