@@ -8,14 +8,14 @@ from astropy.cosmology import Plack18 as planck18
 
 
 
-class Atomospheric_effects:
+class Atmospheric_effects:
     
     
     def __init__(self,air_temperature):
         self.optical_depth=0.005 #optical depth of the atmosphere standard value
         self.air_temperature= air_temperature #temperature of the air in kelvin
         
-    def Slant_path_optical_depth(self,elavation_angle):
+    def slant_path_optical_depth(self,elavation_angle):
         theta= np.pi/2 -np.deg2rad(elavation_angle)
         tau= self.optical_depth/np.cos(theta)
         return tau
@@ -26,7 +26,7 @@ class Atomospheric_effects:
         return T
     
     def atmospheric_absorption(self,elavation_angle,Observed_temperature):
-        tau= self.Slant_path_optical_depth(elavation_angle)
+        tau= self.slant_path_optical_depth(elavation_angle)
         T= Observed_temperature/(np.exp(-tau))
         return T
 
@@ -40,7 +40,7 @@ class Calibration:
     def __init__(self,calibration_intigration_time,air_temperature):
         self.calibration_intigration_time= calibration_intigration_time
         self.air_temperature= air_temperature #temperature of the air in kelvin
-        self.atmospheric= Atomospheric_effects(air_temperature)
+        self.atmospheric= Atmospheric_effects(air_temperature)
         self.CMB_temperature= planck18.Tcmb0.to(u.K)
         self.Hot_temperature= 0
         self.Cold_temperature= 0
@@ -77,7 +77,7 @@ class Calibration:
         Tcal= m*Power + b
         return Tcal
     
-    def Ploter(self):
+    def Plotter(self):
         '''
         TO DO: 
         1. add the Tcold and Thot to the plot
