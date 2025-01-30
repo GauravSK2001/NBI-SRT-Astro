@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from astropy import units as u
 from astropy import constants as const
-from astropy.cosmology import Plack18 as planck18
+from astropy.cosmology import Planck18 as planck18
 
 
 
@@ -15,18 +15,18 @@ class Atmospheric_effects:
         self.optical_depth=0.005 #optical depth of the atmosphere standard value
         self.air_temperature= air_temperature #temperature of the air in kelvin
         
-    def slant_path_optical_depth(self,elavation_angle):
-        theta= np.pi/2 -np.deg2rad(elavation_angle)
+    def slant_path_optical_depth(self,elevation_angle):
+        theta= np.pi/2 -np.deg2rad(elevation_angle)
         tau= self.optical_depth/np.cos(theta)
         return tau
     
-    def atmospheric_emission(self,elavation_angle):
-        tau= self.Slant_path_optical_depth(elavation_angle)
+    def atmospheric_emission(self,elevation_angle):
+        tau= self.slant_path_optical_depth(elevation_angle)
         T= self.air_temperature*(1-np.exp(-tau))
         return T
     
-    def atmospheric_absorption(self,elavation_angle,Observed_temperature):
-        tau= self.slant_path_optical_depth(elavation_angle)
+    def atmospheric_absorption(self,elevation_angle,Observed_temperature):
+        tau= self.slant_path_optical_depth(elevation_angle)
         T= Observed_temperature/(np.exp(-tau))
         return T
 
@@ -37,8 +37,8 @@ class Calibration:
     
     '''
     
-    def __init__(self,calibration_intigration_time,air_temperature):
-        self.calibration_intigration_time= calibration_intigration_time
+    def __init__(self,calibration_integration_time,air_temperature):
+        self.calibration_integration_time= calibration_integration_time
         self.air_temperature= air_temperature #temperature of the air in kelvin
         self.atmospheric= Atmospheric_effects(air_temperature)
         self.CMB_temperature= planck18.Tcmb0.to(u.K)
@@ -47,9 +47,9 @@ class Calibration:
         self.slope= 0
         self.intercept= 0
         self.Tsys= 0
-    def cold_temperature(self,elavation_angle):
+    def cold_temperature(self,elevation_angle):
         
-        T_cold= self.atmospheric.atmospheric_emission(elavation_angle) + self.CMB_temperature
+        T_cold= self.atmospheric.atmospheric_emission(elevation_angle) + self.CMB_temperature
         self.Cold_temperature= T_cold
         return T_cold
     
