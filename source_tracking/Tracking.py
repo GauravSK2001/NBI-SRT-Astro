@@ -32,7 +32,7 @@ class source_tracking:
         self.telescope_pointing = None
 
         # Allowed elevation range
-        self.min_el = 10
+        self.min_el = 0
         self.max_el = 90
 
         # For managing azimuth wrap-around
@@ -41,6 +41,7 @@ class source_tracking:
         # Reference to the hardware controller (Rot2Prog)
         # If None, we only print moves instead of sending them.
         self.control = control
+        
 
     def boundary_adjustments(self, next_az, current_az):
         """
@@ -93,7 +94,7 @@ class source_tracking:
         Convert galactic (L, B) to horizontal coordinates (Az, El)
         at the current time. Returns (current_time_iso, az_deg, el_deg).
         """
-        current_time = Time.now()
+        current_time = Time.now()+1*u.hour
 
         # 1) Build galactic coord
         galactic_coord = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')

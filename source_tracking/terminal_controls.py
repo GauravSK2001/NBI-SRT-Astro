@@ -146,6 +146,16 @@ def main():
             else:
                 print("Invalid usage. Try:\n  s <L> <B>\n  s <Az> <El> azel")
             continue
+        if cmd.startswith('status'):
+            
+            az,el=control.status()
+            print(f"Az={round(az)}°, El={round(el)}")
+            continue
+            
+        if cmd.startswith('rest'):
+            control.Restart()
+            continue
+            
 
         # ----------------------------------------------------------
         # Unknown command

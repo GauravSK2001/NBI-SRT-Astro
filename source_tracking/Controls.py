@@ -208,8 +208,8 @@ class Rot2Prog:
         self.pulses_per_degree = 10
         self.az_min = 0
         self.az_max = 360
-        self.el_min = 0.0
-        self.el_max = 90
+        self.el_min = 0
+        self.el_max = 360
 
     def send_pkt(self, cmd, az=None, el=None):
         """
