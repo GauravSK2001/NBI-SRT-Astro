@@ -280,6 +280,9 @@ class Rot2Prog:
         """
         cmd = 0x0F
         self.send_pkt(cmd)
+        az_relative, el_relative = self.receive_rot2_pkt()
+        time.sleep(1)
+        return az_relative + self.az_min, el_relative + self.el_min
 
     def status(self):
         """
@@ -288,7 +291,7 @@ class Rot2Prog:
         cmd = 0x1F
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()
-        time.sleep(2)
+        time.sleep(1)
         return az_relative + self.az_min, el_relative + self.el_min
 
     def Restart(self):

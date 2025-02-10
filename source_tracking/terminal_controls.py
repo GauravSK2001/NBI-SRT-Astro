@@ -1,5 +1,8 @@
-from Tracking import *
-from Controls import *
+import sys
+from controls import Rot2Prog
+from tracking import source_tracking
+from astropy.coordinates import SkyCoord
+from astropy import units as u
 
 def print_help():
     """
@@ -27,6 +30,9 @@ def print_help():
     r
         Restart the rotator.
 
+    status
+        Query and display the current Az, El from the hardware.
+
     off or exit or q
         Terminate the program and exit.
     """
@@ -38,7 +44,7 @@ def main():
 
     # Instantiate the hardware control
     try:
-        control = Rot2Prog()
+        control = Rot2Prog()  # by default reads 'config.yml'
         print("Rot2Prog control initialized.")
     except Exception as e:
         print(f"Error initializing Rot2Prog: {e}")
@@ -58,9 +64,14 @@ def main():
             print_help()
             continue
 
-        if cmd in ["off", "exit", "quit", "q", 'shutdown','off']:
+        if cmd in ["off", "exit", "quit", "q", "shutdown"]:
             print("\n ...Shutting down... \n")
-            # The rotator will be moved to stow mode.Need to add this 
+            if control is not None:
+                try:
+                    # Optional: Move telescope to stow on shutdown
+                    rotor.set_pointing(0, 0)
+                except Exception as e:
+                    print(f"Error with rotator: {e}")
             break
 
         if cmd == "r":
@@ -94,7 +105,6 @@ def main():
             print(f"\nTarget galactic coordinates set to: L={l_val:.2f}°, B={b_val:.2f}°.\n")
             # Start or continue the monitoring loop
             rotor._monitor_pointing(update_time=5)
-            # If user hits Ctrl+C, we'll return here
             continue
 
         # ----------------------------------------------------------
@@ -121,7 +131,7 @@ def main():
                     rotor.current_lb = SkyCoord(l=L*u.deg, b=B*u.deg, frame='galactic')
                     rotor.telescope_pointing = rotor.current_azel
                     print(f"Slewed to galactic L={L:.2f}°, B={B:.2f}° => "
-                        f"Az={round(az)}°, El={round(el)}°")
+                          f"Az={round(az)}°, El={round(el)}°")
                 except Exception as e:
                     print(f"Error in galactic slew: {e}")
 
@@ -146,16 +156,20 @@ def main():
             else:
                 print("Invalid usage. Try:\n  s <L> <B>\n  s <Az> <El> azel")
             continue
-        if cmd.startswith('status'):
-            
-            az,el=control.status()
-            print(f"Az={round(az)}°, El={round(el)}")
+
+        # ----------------------------------------------------------
+        # status => Show current Az, El from hardware
+        # ----------------------------------------------------------
+        if cmd.startswith("status"):
+            if control is None:
+                print("No rotator available to query status.")
+            else:
+                try:
+                    az, el = control.status()
+                    print(f"Az={round(az)}°, El={round(el)}°")
+                except Exception as e:
+                    print(f"Error reading status: {e}")
             continue
-            
-        if cmd.startswith('rest'):
-            control.Restart()
-            continue
-            
 
         # ----------------------------------------------------------
         # Unknown command
@@ -167,4 +181,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
