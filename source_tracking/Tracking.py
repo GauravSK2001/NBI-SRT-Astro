@@ -1,12 +1,12 @@
 import time
-from astropy.coordinates import EarthLocation, SkyCoord, AltAz
+from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 
 class source_tracking:
     """
     High-level source tracking class. Handles coordinate transformations
-    (Galactic -> Equatorial -> Horizontal) and provides logic to manage
+    (Galactic -> Equatorial -> Horizontal) and logic to manage
     the telescope pointing. Uses `Rot2Prog` for actual hardware moves.
     """
     def __init__(self, control=None):
@@ -27,44 +27,62 @@ class source_tracking:
         self.telescope_pointing = None
 
         # Allowed elevation range
-        self.min_el = 5   # Prevent pointing too close to the horizon
-        self.max_el = 85  # Avoid tracking too close to the zenith
+        self.min_el = 0   # Prevent pointing too close to horizon
+        self.max_el = 90  # Avoid tracking near zenith
 
         # For managing azimuth wrap-around
         self.offset = 0
 
         # Reference to the hardware controller (Rot2Prog)
         self.control = control
+        self.tracking = False
+
+    def check_if_reached_target(self, target_az, target_el, poll_interval=1):
+        """
+        Poll the hardware's current position until it matches the target,
+        or until user stops the program.
+        """
+        print("\nWait for 'Target Reached' confirmation...")
+        while True:
+            if self.control:
+                current_az, current_el = self.control.status()
+                # Use round to avoid small floating differences
+                if round(current_az) == round(target_az) and round(current_el) == round(target_el):
+                    print("\nTarget Reached.")
+                    break
+            else:
+                # If no hardware, just break
+                break
+            time.sleep(poll_interval)
 
     def boundary_adjustments(self, next_az, current_az):
         """
-        Adjust azimuth values to prevent unnecessary long rotations
-        (avoid crossing 0/360 unnecessarily).
+        Adjust azimuth to avoid unnecessary 0/360 crossing.
         """
         diff = next_az - current_az
-        if diff > 180:
+        if diff > 358:
             self.offset -= 360
-        elif diff < -180:
+        elif diff < -358:
             self.offset += 360
         return next_az + self.offset
 
-    def check_if_allowed_el(self, el):
+    def check_if_allowed_el(self, el,verbose=True):
         """
         Check if the elevation is within acceptable limits.
         """
         if el < self.min_el or el > self.max_el:
-            print(f"Elevation {round(el)}° out of range ({self.min_el}° - {self.max_el}°).")
+            if verbose:
+                print(f"\nElevation {round(el)}° out of range, must be between {self.min_el}° - {self.max_el}°.")
             return False
         return True
 
-    def set_pointing(self, A, E):
+    def set_pointing(self, A, E,overide):
         """
         Move the telescope to Az=A, El=E after verifying limits.
         """
-        if not self.check_if_allowed_el(E):
+        if not self.check_if_allowed_el(E) and not overide:
             raise ValueError("Elevation out of bounds!")
 
-        # Adjust azimuth wrap
         if self.telescope_pointing is None:
             current_az = 0
         else:
@@ -75,17 +93,18 @@ class source_tracking:
         if self.control:
             self.control.point(corrected_az, E)
         else:
-            print(f" ==> Telescope pointed to Az={round(corrected_az)}°, El={round(E)}°")
+            print(f" ==> Simulated pointing to Az={corrected_az}°, El={E}°")
 
     def tracking_galactic_coordinates(self, L, B):
         """
-        Convert Galactic (L, B) to Horizontal (Az, El) coordinates at current time.
+        Convert Galactic (L, B) to Horizontal (Az, El) at current time.
         """
-        current_time = Time.now()  # Ensure UTC time
+        current_time = Time.now()
         galactic_coord = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')
 
-        # Convert to equatorial (ICRS) -> horizontal (AltAz)
+        # Convert to Equatorial (ICRS), then to Horizontal (AltAz)
         equatorial_coord = galactic_coord.icrs
+
         obs_loc = EarthLocation(
             lat=self.LATITUDE * u.deg,
             lon=self.LONGITUDE * u.deg,
@@ -107,31 +126,33 @@ class source_tracking:
 
     def updating_pointing(self, L, B, update_time):
         """
-        Update telescope pointing if position changed significantly (>1 deg).
+        If the position changes by >= 1 deg, move again.
         """
         current_time, az, el = self.tracking_galactic_coordinates(L, B)
 
-        new_azel = SkyCoord(alt=el * u.deg, az=az * u.deg, frame='altaz')
-        new_lb = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')
+        new_azel = SkyCoord(alt=el*u.deg, az=az*u.deg, frame='altaz')
+        new_lb = SkyCoord(l=L*u.deg, b=B*u.deg, frame='galactic')
 
-        # If new position differs by at least 1 deg in horizontal coords, move
-        if (self.current_azel is None) or (self.telescope_pointing.separation(new_azel) >= 1 * u.deg):
+        if (self.current_azel is None) or (self.telescope_pointing.separation(new_azel) >= 1*u.deg):
             self.current_azel = new_azel
             self.current_lb = new_lb
             self.telescope_pointing = SkyCoord(alt=round(el)*u.deg, az=round(az)*u.deg, frame='altaz')
 
             try:
-                self.set_pointing(A=round(az), E=round(el))
+                self.set_pointing(A=round(az), E=round(el),overide=False)
+                print(f"\n[{current_time}] Updated pointing to Az={round(az)}°, El={round(el)}°")
+                if not self.tracking:
+                    self.check_if_reached_target(self.current_azel.az.deg, self.current_azel.alt.deg)
+                    self.tracking = True
             except ValueError as e:
                 print(f"Error setting pointing: {e}")
                 return
+                
 
-            print(f"\n[{current_time}] Updated pointing to Az={round(az)}°, El={round(el)}°")
 
     def _monitor_pointing(self, update_time=5):
         """
-        Continuously monitor the tracking position every `update_time` seconds.
-        User can stop with Ctrl+C.
+        Continuously update pointing every `update_time` seconds until Ctrl+C.
         """
         try:
             while True:
@@ -141,15 +162,20 @@ class source_tracking:
 
                     try:
                         self.updating_pointing(Lval, Bval, update_time)
+
                     except ValueError as e:
                         print(f"\nTracking Error: {e}")
-                        break
-
-                time.sleep(update_time)
+                        continue
+                    
         except KeyboardInterrupt:
-            print("\n\nTracking stopped by user.")
+            print("\n\n Tracking stopped by user (Ctrl+C).\n")
             if self.control:
                 az, el = self.control.stop()
-                print(f"\nStopped at Az={round(az)}°, El={round(el)}°.\n")
-                
-            print("Returning to terminal.")
+                print(f"Stopped at Az={round(az)}°, El={round(el)}°.\n")
+                self.tracking = False
+            print("Returning to terminal...")
+
+
+#problems faced
+# when exititng the telescope went to 359 0 instead of 0 0
+# target reached exception is being run when out of bounds exception is made

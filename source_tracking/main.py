@@ -1,6 +1,6 @@
 import sys
-from controls import Rot2Prog
-from tracking import source_tracking
+from Controls import Rot2Prog
+from Tracking import source_tracking
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -38,7 +38,6 @@ def print_help():
     """
     )
 
-
 def main():
     print("Welcome to the Interactive Telescope Terminal")
 
@@ -53,9 +52,13 @@ def main():
     # Instantiate the high-level source tracking, passing in the control
     rotor = source_tracking(control=control)
 
-    # Main command loop
     while True:
-        cmd = input("\nEnter command (type 'help' for options): ").strip().lower()
+        try:
+            cmd = input("\nEnter command (type 'help' for options): ").strip().lower()
+        except KeyboardInterrupt:
+            print("\n[Ctrl+C detected] Command input interrupted. Continuing...")
+            # If you prefer to exit upon Ctrl+C, replace 'continue' with 'break' or do other cleanup
+            continue
 
         if not cmd:
             continue
@@ -68,8 +71,9 @@ def main():
             print("\n ...Shutting down... \n")
             if control is not None:
                 try:
-                    # Optional: Move telescope to stow on shutdown
-                    rotor.set_pointing(0, 0)
+                    # Extra arg 'overide=True' is your custom parameter.
+                    # If your set_pointing signature supports it, keep it; else remove.
+                    control.point(0, 0)
                 except Exception as e:
                     print(f"Error with rotator: {e}")
             break
@@ -86,7 +90,6 @@ def main():
 
         # ----------------------------------------------------------
         # T <L> <B> => continuous tracking
-        # This starts or continues the 5-second update cycle
         # ----------------------------------------------------------
         if cmd.startswith("t "):
             parts = cmd.split()
@@ -102,7 +105,7 @@ def main():
 
             # Set the rotor's current galactic coords
             rotor.current_lb = SkyCoord(l=l_val*u.deg, b=b_val*u.deg, frame='galactic')
-            print(f"\nTarget galactic coordinates set to: L={l_val:.2f}°, B={b_val:.2f}°.\n")
+            print(f"\nTarget galactic coordinates set to: L={l_val:.2f}°, B={b_val:.2f}°.")
             # Start or continue the monitoring loop
             rotor._monitor_pointing(update_time=5)
             continue
@@ -114,7 +117,7 @@ def main():
         if cmd.startswith("s "):
             parts = cmd.split()
 
-            # 3 parts => presumably s <L> <B> (galactic)
+            # s <L> <B>
             if len(parts) == 3:
                 try:
                     L = float(parts[1])
@@ -126,16 +129,20 @@ def main():
                 current_time, az, el = rotor.tracking_galactic_coordinates(L, B)
                 # Attempt immediate slew
                 try:
-                    rotor.set_pointing(az, el)
+                    rotor.set_pointing(az, el, overide=False)
                     rotor.current_azel = SkyCoord(alt=el*u.deg, az=az*u.deg, frame='altaz')
                     rotor.current_lb = SkyCoord(l=L*u.deg, b=B*u.deg, frame='galactic')
                     rotor.telescope_pointing = rotor.current_azel
-                    print(f"Slewed to galactic L={L:.2f}°, B={B:.2f}° => "
+                    print(f"Slewing to galactic L={L:.2f}°, B={B:.2f}° => "
                           f"Az={round(az)}°, El={round(el)}°")
+                    # The check_if_reached_target call should be from the rotor instance
+                    
                 except Exception as e:
+                    # You had 'pass' in your code; logging an error might be helpful:
                     print(f"Error in galactic slew: {e}")
-
-            # 4 parts => s <Az> <El> azel
+                
+                rotor.check_if_reached_target(round(az), round(el))
+            # s <Az> <El> azel
             elif len(parts) == 4 and parts[-1] == "azel":
                 try:
                     az = float(parts[1])
@@ -146,13 +153,15 @@ def main():
 
                 # Attempt to slew to these horizontal coordinates
                 try:
-                    rotor.set_pointing(az, el)
+                    rotor.set_pointing(round(az), round(el),overide=False)
                     rotor.current_azel = SkyCoord(alt=el*u.deg, az=az*u.deg, frame='altaz')
                     rotor.telescope_pointing = rotor.current_azel
                     rotor.current_lb = None  # We don't know the galactic coords here
-                    print(f"Slewed to horizontal Az={round(az)}°, El={round(el)}°")
+                    print(f"Slewing to horizontal Az={round(az)}°, El={round(el)}°")
+                    
                 except Exception as e:
                     print(f"Error in az/el slew: {e}")
+                rotor.check_if_reached_target(round(az), round(el))
             else:
                 print("Invalid usage. Try:\n  s <L> <B>\n  s <Az> <El> azel")
             continue
@@ -177,7 +186,6 @@ def main():
         print("Unknown command. Type 'help' to see available commands.")
 
     print("\nGoodbye!\n")
-
 
 if __name__ == "__main__":
     main()
