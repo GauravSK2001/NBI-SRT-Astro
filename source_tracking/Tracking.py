@@ -37,6 +37,7 @@ class source_tracking:
         self.control = control
         self.tracking = False
 
+
     def check_if_reached_target(self, target_az, target_el, poll_interval=1):
         """
         Poll the hardware's current position until it matches the target,
