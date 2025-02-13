@@ -2,6 +2,8 @@ import tkinter as tk
 
 import sys
 
+import time
+
 
 import numpy as np
 
@@ -9,16 +11,16 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 
 
-class Interface(tk.Frame):
-
+class pointing_frame(tk.Frame):
+    #Frame containing controls for pointing the telescope including tracking
           
     
-    def __init__(self, master, tracker):
+    def __init__(self, master, rotor):
         super().__init__(master)
         self.grid()
 
         #Initialize tracking
-        self.tracker = tracker
+        self.rotor = rotor
 
         num_pointing_columns = 8
         #num_pointing_rows = 5
@@ -146,7 +148,7 @@ class Interface(tk.Frame):
          
 
     def slew(self):
-        #Slew to given coordinates - either l, b or azel
+        #Take l, b or azel coordinates and slew telescope if coordinates are valid 
 
         message = "Slewing"
 
@@ -158,7 +160,7 @@ class Interface(tk.Frame):
                 l = float(self.l_var.get())
                 b = float(self.b_var.get())
 
-                now, az, el = self.tracker.tracking_galactic_coordinates( L=l, B=b)
+                now, az, el = self.rotor.tracking_galactic_coordinates(L=l, B=b)
 
 
                 print("Az: ", az, ", El: ", el)
@@ -170,10 +172,24 @@ class Interface(tk.Frame):
                 if not self.check_valid_el(round(el)):
                     return None
                 
-                
                 self.set_pointing_message(message)
 
-                #self.tracker.set_pointing(az, el, override=False)
+                #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
+                if self.rotor.control is not None:
+                    try:
+                        #self.rotor.slew(az, el)
+                        print("Issued slew command to rotor")
+                
+                    except Exception as e:
+                        message = f"Slewing error {e}"
+                        print(message)
+                        self.set_pointing_message(message, is_error=True)
+
+                else:
+                    time.sleep(10)
+
+                message = "Holding"
+                self.set_pointing_message(message)
                          
 
             except ValueError:
@@ -189,7 +205,6 @@ class Interface(tk.Frame):
                 az = float(self.az_var.get())
                 el = float(self.el_var.get())
 
-                print(el)
 
                 #Check valid elevation
                 if not self.check_valid_el(round(el)):
@@ -197,7 +212,22 @@ class Interface(tk.Frame):
                 
                 self.set_pointing_message(message)
 
-                #self.tracker.set_pointing(az, el, override=False)
+                #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
+                if self.rotor.control is not None:
+                    try:
+                        #self.rotor.slew(az, el)
+                        print("Issued slew command to rotor")
+                    
+                    except Exception as e:
+                        print(f"Slewing error {e}")
+
+                    self.rotor.check_if_reached_target(round(az), round(el))
+                else: 
+                    time.sleep(10)
+                
+                message = "Holding"
+                self.set_pointing_message(message)
+
 
             except ValueError:
                 message = "Invalid numeric values for az, el."
@@ -207,50 +237,85 @@ class Interface(tk.Frame):
 
 
     def track(self):
-         
-        try:
-            l = float(self.l_var.get())
-            b = float(self.b_var.get())
+        #Take input l, b coordinates and track if coordinates are valid
+        if not self.rotor.tracking:
+            try:
+                l = round(float(self.l_var.get()))
+                b = round(float(self.b_var.get()))
 
-            now, az, el = self.tracker.tracking_galactic_coordinates( L=l, B=b)
+                now, az, el = self.rotor.tracking_galactic_coordinates( L=l, B=b)
 
 
-            print("Az: ", az, ", El: ", el)
+                print("Az: ", az, ", El: ", el)
 
-            self.az_var.set(round(az))
-            self.el_var.set(round(el))
+                self.az_var.set(round(az))
+                self.el_var.set(round(el))
 
-            #Check valid elevation
-            if not self.check_valid_el(round(el)):
-                return None
+                #Check valid elevation
+                if not self.check_valid_el(round(el)):
+                    return None
                 
+            
+
+                message = f"Tracking l:{l}, b:{b}"
+                print(message)
+
+                self.set_pointing_message(message)
+
+
+                self.track_button.config(text="Stop tracking")
+                self.update()
+
+            except ValueError:
+                message = "Invalid numeric values for l, b."
+                print(message)
+                self.set_pointing_message(message, is_error=True)
                 
-            self.set_pointing_message(message)
+        else:
+            self.track_button.config(text="Stop tracking")
+            self.update()
+            
+            
 
-            #self.tracker.set_pointing(az, el, override=False)
-                         
-
-        except ValueError:
-            message = "Invalid numeric values for l, b."
-            print(message)
-            self.set_pointing_message(message, is_error=True)
-
-        print("Tracking")
+        
 
     def home(self):
         #Slew to home position
-        #self.tracker.set_pointing(0, 0, override=False)
-        print("Homing to Az: 0, El: 0")
+        #self.rotor.set_pointing(0, 0, override=False)
+
+        message = "Homing to Az: 0, El: 0"
+        print(message)
+
+        self.set_pointing_message(message)
+
+        #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
+        if self.rotor.control is not None:
+            try:
+                self.rotor.set_pointing(0, 0,overide=False)
+                self.rotor.current_azel = SkyCoord(alt=0*u.deg, az=0*u.deg, frame='altaz')
+                self.rotor.telescope_pointing = self.rotor.current_azel
+                self.rotor.current_lb = None  #No galactic coordinates are given for homing
+                    
+            except Exception as e:
+                print(f"Error in az/el slew: {e}")
+
+            self.rotor.check_if_reached_target(round(az), round(el))
+        else: 
+            time.sleep(10)
+                
+            message = "Holding"
+            self.set_pointing_message(message)
+
 
     def stow(self):
         #Slew to stowed position
-        #self.tracker.set_pointing(0, -5, override=True)
+        #self.rotor.set_pointing(0, -5, override=True)
         print("Stowing telescope")
 
     def check_valid_el(self, el):
         #Check that elevation command is within the rotor range, display an error if not.
-        if not self.tracker.check_if_allowed_el(el=el):
-            message = f"Input Error: Elevation {round(el)}° not in range, must be between {self.tracker.min_el}° - {self.tracker.max_el}°."
+        if not self.rotor.check_if_allowed_el(el=el):
+            message = f"Input Error: Elevation {round(el)}° not in range, must be between {self.rotor.min_el}° - {self.rotor.max_el}°."
             self.set_pointing_message(message, is_error=True)
             return False
         else:
@@ -258,12 +323,15 @@ class Interface(tk.Frame):
 
 
     def set_pointing_message(self, message, is_error=False):
+        #Change text in pointing message label - change color to red if the message is an error
+        print("Setting message to: ", message)
         if is_error:
             self.pointing_message_label.config(fg="red")
         else:
             self.pointing_message_label.config(fg="black")
         
         self.pointing_message_var.set(message)
+        self.update()
          
 
 

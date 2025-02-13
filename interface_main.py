@@ -1,17 +1,10 @@
 import tkinter as tk
 
-import sys
 
 #from source_tracking.Controls import Rot2Prog
 from source_tracking.Tracking import source_tracking
 
-from interface.pointing_gui import Interface
-
-import numpy as np
-
-from astropy.coordinates import SkyCoord
-from astropy import units as u
-
+from interface.pointing_gui import pointing_frame
 
 
 root = tk.Tk()
@@ -24,7 +17,7 @@ root.geometry("550x150")
 rotor = source_tracking()
 
 
-observatory_interface = Interface(root, tracker=rotor)
+observatory_interface = pointing_frame(root, rotor=rotor)
 observatory_interface.mainloop()
 
 
