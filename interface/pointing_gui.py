@@ -15,8 +15,8 @@ class pointing_frame(tk.Frame):
     #Frame containing controls for pointing the telescope including tracking
           
     
-    def __init__(self, master, rotor):
-        super().__init__(master)
+    def __init__(self, master, rotor, bd, width, height):
+        super().__init__(master, bd=bd, width=width, height=height)
         self.grid()
 
         #Initialize tracking
@@ -38,19 +38,24 @@ class pointing_frame(tk.Frame):
 
         self.int_time_var = tk.StringVar()
 
-        #Create labels for pointing, integration, calibration, and status
+        #Create labels for pointing
         self.pointing_controls_label = tk.Label(self, text="Pointing Controls", justify="center")
 
-        #Create objects for controlling telescope pointing
         self.gal_long_label = tk.Label(self, text="l:")
         self.gal_lat_label = tk.Label(self, text="b:")
 
-        self.gal_long_field = tk.Entry(self, textvariable=self.l_var, state="readonly")
-        self.gal_lat_field = tk.Entry(self, textvariable=self.b_var, state="readonly")
-
-
         self.az_label = tk.Label(self, text="Az:")
         self.el_label = tk.Label(self, text="El:")
+
+        self.selector_label = tk.Label(self, text="Coordinate selection:")
+
+        self.pointing_status_label = tk.Label(self, text="Status:")
+        self.pointing_message_label = tk.Label(self, textvariable=self.pointing_message_var, justify="left", anchor="w")
+
+        #Create entries and buttons for controlling telescope pointing
+        
+        self.gal_long_field = tk.Entry(self, textvariable=self.l_var, state="readonly")
+        self.gal_lat_field = tk.Entry(self, textvariable=self.b_var, state="readonly")
 
         self.az_field = tk.Entry(self, textvariable=self.az_var)
         self.el_field = tk.Entry(self, textvariable=self.el_var)
@@ -61,13 +66,9 @@ class pointing_frame(tk.Frame):
         self.home_button = tk.Button(self, text="Home", command=self.home, width=6)
         self.stow_button = tk.Button(self, text="Stow", command=self.stow, width=6)
         
-        self.selector_label = tk.Label(self, text="Coordinate selection:")
-
         self.gal_selector = tk.Radiobutton(self, text="l, b", value=True, variable=self.selector_state, command=self.select_coords)
         self.azel_selector = tk.Radiobutton(self, text="Az/El", value=False, variable=self.selector_state, command=self.select_coords)
 
-        self.pointing_status_label = tk.Label(self, text="Status:")
-        self.pointing_message_label = tk.Label(self, textvariable=self.pointing_message_var, justify="left", anchor="w")
 
         #Arrange pointing objects
         self.pointing_controls_label.grid(column=0, row=0, pady=2, columnspan=num_pointing_columns)
@@ -270,7 +271,7 @@ class pointing_frame(tk.Frame):
                 message = "Invalid numeric values for l, b."
                 print(message)
                 self.set_pointing_message(message, is_error=True)
-                
+
         else:
             self.track_button.config(text="Stop tracking")
             self.update()
@@ -324,7 +325,7 @@ class pointing_frame(tk.Frame):
 
     def set_pointing_message(self, message, is_error=False):
         #Change text in pointing message label - change color to red if the message is an error
-        print("Setting message to: ", message)
+        print("Setting pointing message to: ", message)
         if is_error:
             self.pointing_message_label.config(fg="red")
         else:
