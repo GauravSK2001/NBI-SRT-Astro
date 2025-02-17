@@ -63,6 +63,24 @@ class SourceTracking:
             return False
         return True
 
+    def check_if_reached_target(self, target_az, target_el, poll_interval=1):
+        """
+        Poll the hardware's current position until it matches the target,
+        or until user stops the program.
+        """
+        print("\nWait for 'Target Reached' confirmation...")
+        while True:
+            if self.control:
+                current_az, current_el = self.control.status()
+                # Use round to avoid small floating differences
+                if round(current_az) == round(target_az) and round(current_el) == round(target_el):
+                    print("\nTarget Reached.")
+                    break
+            else:
+                # If no hardware, just break
+                break
+            time.sleep(poll_interval)
+
     def boundary_adjustments(self, next_az, current_az):
         """
         Adjust azimuth to avoid unnecessary 0/360° crossing.
