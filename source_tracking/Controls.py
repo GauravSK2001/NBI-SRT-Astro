@@ -4,15 +4,15 @@ from serial import Serial
 
 class Rot2Prog:
     """
-    Class managing hardware-level communications with the rotor.
-    Sends commands and receives status from the device.
+    Manages low-level communications with the rotor.
+    Sends command packets and receives status packets from the device.
     """
     def __init__(self):
-        # Update port to match your device
+        # Update the port to match your device.
         self.port = "/dev/ttyUSB1"
         self.baudrate = 115200
 
-        # Initialize serial connection
+        # Initialize the serial connection.
         self.ser = Serial(
             port=self.port,
             baudrate=self.baudrate,
@@ -22,81 +22,90 @@ class Rot2Prog:
             timeout=None
         )
 
-        # User-defined properties
-        self.pulses_per_degree = 10
+        # Device-specific properties.
+        self.pulses_per_degree = 10  # Conversion factor: pulses per degree.
         self.az_min = 0
         self.az_max = 360
         self.el_min = 0
         self.el_max = 360
 
+    def _deg_to_ticks(self, deg, offset):
+        """
+        Convert degrees to ticks based on the pulses_per_degree and given offset.
+        """
+        return int(self.pulses_per_degree * (deg + offset))
+
     def send_pkt(self, cmd, az=None, el=None):
         """
-        Low-level method to build and send a command packet to the rotator.
+        Build and send a command packet to the rotor.
+        If az and el are provided, they are converted to ticks.
         """
         if az is not None and el is not None:
-            azimuth = int(self.pulses_per_degree * (az + self.az_max))
-            elevation = int(self.pulses_per_degree * (el + self.el_max))
+            # Convert degrees to ticks using az_max/el_max as offsets.
+            azimuth = self._deg_to_ticks(az, self.az_max)
+            elevation = self._deg_to_ticks(el, self.el_max)
         else:
             azimuth = 0
             elevation = 0
 
-        azimuth_ticks = self.pulses_per_degree
-        elevation_ticks = self.pulses_per_degree
+        # For this device, the tick values are also used as tick markers.
+        ticks_per_degree = self.pulses_per_degree
 
+        # Build the command string (protocol-specific format).
+        # Format: "W{azimuth:04d}{ticks_per_degree}{elevation:04d}{ticks_per_degree}{cmd} "
         cmd_string = "W%04d%c%04d%c%c " % (
             azimuth,
-            azimuth_ticks,
+            ticks_per_degree,
             elevation,
-            elevation_ticks,
+            ticks_per_degree,
             cmd,
         )
         cmd_bytes = cmd_string.encode("ascii")
         self.ser.write(cmd_bytes)
-        time.sleep(1)
+        time.sleep(1)  # Allow time for the device to process the command.
 
     def receive_rot2_pkt(self):
         """
-        Low-level method to read a status packet from the rotator.
-        Expecting 12 bytes of data.
+        Read a 12-byte status packet from the rotor and decode the azimuth and elevation.
         """
         received_vals = self.ser.read(12)
         if len(received_vals) < 12:
             raise IOError("Incomplete packet read from rotator.")
 
-        # Decode az
+        # Decode the azimuth.
         az = (
-            (received_vals[1] * 100)
-            + (received_vals[2] * 10)
-            + received_vals[3]
-            + (received_vals[4] / 10.0)
-            - self.az_max
-            + self.az_min
+            (received_vals[1] * 100) +
+            (received_vals[2] * 10) +
+            received_vals[3] +
+            (received_vals[4] / 10.0) -
+            self.az_max + self.az_min
         )
-        # Decode el
+        # Decode the elevation.
         el = (
-            (received_vals[6] * 100)
-            + (received_vals[7] * 10)
-            + received_vals[8]
-            + (received_vals[9] / 10.0)
-            - self.el_max
-            + self.el_min
+            (received_vals[6] * 100) +
+            (received_vals[7] * 10) +
+            received_vals[8] +
+            (received_vals[9] / 10.0) -
+            self.el_max + self.el_min
         )
         return az, el
 
     def point(self, az, el):
         """
-        Slew the rotor to the specified Az,El (in degrees).
+        Slew the rotor to the specified Azimuth and Elevation (in degrees).
+        Converts given absolute values to relative ones and sends the point command.
         """
-        cmd = 0x2F
+        cmd = 0x2F  # Command code for pointing.
+        # Convert absolute coordinates to relative values.
         az_relative = az - self.az_min
         el_relative = el - self.el_min
         self.send_pkt(cmd, az=az_relative, el=el_relative)
 
     def stop(self):
         """
-        Send a stop command to the rotator.
+        Send a stop command to the rotor and return the current position.
         """
-        cmd = 0x0F
+        cmd = 0x0F  # Command code for stop.
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()
         time.sleep(1)
@@ -104,9 +113,9 @@ class Rot2Prog:
 
     def status(self):
         """
-        Send a status command and parse the returning packet.
+        Request the current rotor status and return the Azimuth and Elevation.
         """
-        cmd = 0x1F
+        cmd = 0x1F  # Command code for status.
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()
         time.sleep(1)
@@ -114,8 +123,9 @@ class Rot2Prog:
 
     def Restart(self):
         """
-        Send a custom restart packet to the rotator.
+        Send a custom restart packet to the rotor.
         """
+        # Custom restart packet (protocol-specific).
         cmd = [0x57, 0xEF, 0xBE, 0xAD, 0xDE, 0x00, 0x00, 0x00,
                0x00, 0x00, 0x00, 0xEE, 0x20]
         packet = bytes(cmd)
