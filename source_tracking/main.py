@@ -1,6 +1,6 @@
 import sys
 from Controls import Rot2Prog
-from Tracking import source_tracking
+from Tracking import SourceTracking  # Adjust the import if needed.
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
@@ -49,15 +49,14 @@ def main():
         print(f"Error initializing Rot2Prog: {e}")
         control = None
 
-    # Instantiate the high-level source tracking, passing in the control
-    rotor = source_tracking(control=control)
+    # Instantiate the source tracking system
+    rotor = SourceTracking(control=control)
 
     while True:
         try:
             cmd = input("\nEnter command (type 'help' for options): ").strip().lower()
         except KeyboardInterrupt:
             print("\n[Ctrl+C detected] Command input interrupted. Continuing...")
-            # If you prefer to exit upon Ctrl+C, replace 'continue' with 'break' or do other cleanup
             continue
 
         if not cmd:
@@ -68,12 +67,10 @@ def main():
             continue
 
         if cmd in ["off", "exit", "quit", "q", "shutdown"]:
-            print("\n ...Shutting down... \n")
+            print("\n...Shutting down...\n")
             if control is not None:
                 try:
-                    # Extra arg 'overide=True' is your custom parameter.
-                    # If your set_pointing signature supports it, keep it; else remove.
-                    control.point(0, 0)
+                    rotor.stow()
                 except Exception as e:
                     print(f"Error with rotator: {e}")
             break
@@ -88,9 +85,7 @@ def main():
                 print("No rotator control available to restart.")
             continue
 
-        # ----------------------------------------------------------
-        # T <L> <B> => continuous tracking
-        # ----------------------------------------------------------
+        # Continuous tracking: t <L> <B>
         if cmd.startswith("t "):
             parts = cmd.split()
             if len(parts) != 3:
@@ -103,46 +98,28 @@ def main():
                 print("Invalid numeric values for L, B.")
                 continue
 
-            # Set the rotor's current galactic coords
-            rotor.current_lb = SkyCoord(l=l_val*u.deg, b=b_val*u.deg, frame='galactic')
-            print(f"\nTarget galactic coordinates set to: L={l_val:.2f}°, B={b_val:.2f}°.")
-            # Start or continue the monitoring loop
-            rotor._monitor_pointing(update_time=5)
+            rotor.track_target(l_val, b_val, update_time=5)
             continue
 
-        # ----------------------------------------------------------
-        # Slew => s ...
-        #   s <L> <B>  or  s <Az> <El> azel
-        # ----------------------------------------------------------
+        # Slewing: s <L> <B>  OR  s <Az> <El> azel
         if cmd.startswith("s "):
             parts = cmd.split()
-
-            # s <L> <B>
             if len(parts) == 3:
                 try:
-                    L = float(parts[1])
-                    B = float(parts[2])
+                    L_val = float(parts[1])
+                    B_val = float(parts[2])
                 except ValueError:
                     print("Invalid numeric values for L, B.")
                     continue
 
-                current_time, az, el = rotor.tracking_galactic_coordinates(L, B)
-                # Attempt immediate slew
+                # Convert Galactic coordinates to horizontal (Az, El)
+                _, az, el = rotor.tracking_galactic_coordinates(L_val, B_val)
                 try:
-                    rotor.set_pointing(az, el, overide=False)
-                    rotor.current_azel = SkyCoord(alt=el*u.deg, az=az*u.deg, frame='altaz')
-                    rotor.current_lb = SkyCoord(l=L*u.deg, b=B*u.deg, frame='galactic')
-                    rotor.telescope_pointing = rotor.current_azel
-                    print(f"Slewing to galactic L={L:.2f}°, B={B:.2f}° => "
-                          f"Az={round(az)}°, El={round(el)}°")
-                    # The check_if_reached_target call should be from the rotor instance
-                    
+                    rotor.slew(az, el, override=False)
+                    rotor.current_lb = SkyCoord(l=L_val*u.deg, b=B_val*u.deg, frame='galactic')
                 except Exception as e:
-                    # You had 'pass' in your code; logging an error might be helpful:
                     print(f"Error in galactic slew: {e}")
-                
-                rotor.check_if_reached_target(round(az), round(el))
-            # s <Az> <El> azel
+
             elif len(parts) == 4 and parts[-1] == "azel":
                 try:
                     az = float(parts[1])
@@ -151,24 +128,15 @@ def main():
                     print("Invalid numeric values for Az, El.")
                     continue
 
-                # Attempt to slew to these horizontal coordinates
                 try:
-                    rotor.set_pointing(round(az), round(el),overide=False)
-                    rotor.current_azel = SkyCoord(alt=el*u.deg, az=az*u.deg, frame='altaz')
-                    rotor.telescope_pointing = rotor.current_azel
-                    rotor.current_lb = None  # We don't know the galactic coords here
-                    print(f"Slewing to horizontal Az={round(az)}°, El={round(el)}°")
-                    
+                    rotor.slew(az, el, override=True)
+                    rotor.current_lb = None  # Unknown Galactic coordinates in this case.
                 except Exception as e:
                     print(f"Error in az/el slew: {e}")
-                rotor.check_if_reached_target(round(az), round(el))
             else:
                 print("Invalid usage. Try:\n  s <L> <B>\n  s <Az> <El> azel")
             continue
 
-        # ----------------------------------------------------------
-        # status => Show current Az, El from hardware
-        # ----------------------------------------------------------
         if cmd.startswith("status"):
             if control is None:
                 print("No rotator available to query status.")
@@ -180,9 +148,6 @@ def main():
                     print(f"Error reading status: {e}")
             continue
 
-        # ----------------------------------------------------------
-        # Unknown command
-        # ----------------------------------------------------------
         print("Unknown command. Type 'help' to see available commands.")
 
     print("\nGoodbye!\n")
