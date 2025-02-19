@@ -330,7 +330,7 @@ class pointing_frame(tk.Frame):
     def check_valid_el(self, el):
         #Check that elevation command is within the rotor range, display an error if not.
         if not self.rotor.check_if_allowed_el(el=el):
-            message = f"interface:Input Error: Elevation {round(el)}° not in range, must be between {self.rotor.min_el}° - {self.rotor.max_el}°."
+            message = f"Input Error: Elevation {round(el)}° not in range, must be between {self.rotor.min_el}° - {self.rotor.max_el}°."
             self.set_pointing_message(message, is_error=True)
             return False
         else:
