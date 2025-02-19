@@ -101,20 +101,11 @@ class pointing_frame(tk.Frame):
         self.pointing_message_label.grid(column=1, row=4, pady=2, columnspan=7, sticky="w")
 
         
-   
-
-
-#    def print_lb(self):
-#        print("l: ", self.l_var.get(), ", b: ", self.b_var.get())
-
-#    def print_azel(self):
-#        print("Az: ", self.az_var.get(), ", El: ", self.el_var.get())
 
     def select_coords(self):
         #
 
         if self.selector_state.get():
-            print("Selector State: ", self.selector_state.get())
             
             #Enable l, b inputs
             self.gal_long_field.config(state="normal")
@@ -130,7 +121,6 @@ class pointing_frame(tk.Frame):
             
 
         else:
-            print("Selector State: ", self.selector_state.get())
 
             #Enable az/el inputs
             self.az_field.config(state="normal")
@@ -154,8 +144,7 @@ class pointing_frame(tk.Frame):
         message = "Slewing"
 
         if self.selector_state.get():
-            print("Selector State: ", self.selector_state.get())
-            print("Slewing to l: ", self.l_var.get(), ", b: ", self.b_var.get())
+            print("Interface: Slewing to l: ", self.l_var.get(), ", b: ", self.b_var.get())
 
             try:
                 l = float(self.l_var.get())
@@ -164,7 +153,7 @@ class pointing_frame(tk.Frame):
                 now, az, el = self.rotor.tracking_galactic_coordinates(L=l, B=b)
 
 
-                print("Az: ", az, ", El: ", el)
+                print("Interface: Az: ", az, ", El: ", el)
 
                 self.az_var.set(round(az))
                 self.el_var.set(round(el))
@@ -179,11 +168,10 @@ class pointing_frame(tk.Frame):
                 if self.rotor.control is not None:
                     try:
                         self.rotor.slew(az, el, override=False)
-                        print("Issued slew command to rotor")
+                        print("Interface: Issued slew command to rotor")
                 
                     except Exception as e:
                         message = f"Slewing error {e}"
-                        print(message)
                         self.set_pointing_message(message, is_error=True)
 
             
@@ -194,12 +182,11 @@ class pointing_frame(tk.Frame):
 
             except ValueError:
                 message = "Invalid numeric values for l, b."
-                print(message)
                 self.set_pointing_message(message, is_error=True)
                     
         else: 
-            print("Selector State: ", self.selector_state.get())
-            print("Slewing to Az: ", self.az_var.get(), ", El: ", self.el_var.get())
+            
+            print("Interface: Slewing to Az: ", self.az_var.get(), ", El: ", self.el_var.get())
 
             try:
                 az = float(self.az_var.get())
@@ -216,10 +203,10 @@ class pointing_frame(tk.Frame):
                 if self.rotor.control is not None:
                     try:
                         self.rotor.slew(az, el, override=False)
-                        print("Issued slew command to rotor")
+                        print("Interface: Issued slew command to rotor")
                     
                     except Exception as e:
-                        print(f"Slewing error {e}")
+                        print(f"Interface: Slewing error {e}")
 
                 
                 message = "Holding"
@@ -228,7 +215,6 @@ class pointing_frame(tk.Frame):
 
             except ValueError:
                 message = "Invalid numeric values for az, el."
-                print(message)
                 self.set_pointing_message(message, is_error=True)
 
 
@@ -267,7 +253,6 @@ class pointing_frame(tk.Frame):
 
             except ValueError:
                 message = "Invalid numeric values for l, b."
-                print(message)
                 self.set_pointing_message(message, is_error=True)
 
         else:
@@ -285,7 +270,7 @@ class pointing_frame(tk.Frame):
         #self.rotor.set_pointing(0, 0, override=False)
 
         message = "Homing to Az: 0, El: 0"
-        print(message)
+        
 
         self.set_pointing_message(message)
 
@@ -299,11 +284,11 @@ class pointing_frame(tk.Frame):
                 self.reset_inputs(True, False)
 
                 self.az_var.set(0)
-                self.el_var.set(0)
+                self.el_var.set()
 
                     
             except Exception as e:
-                print(f"Error in az/el slew: {e}")
+                print(f"Interface: Error in az/el slew: {e}")
 
             
         else: 
@@ -330,7 +315,7 @@ class pointing_frame(tk.Frame):
 
                     
             except Exception as e:
-                print(f"Error in az/el slew: {e}")
+                print(f"Interface: Error in az/el slew: {e}")
 
            
         else: 
@@ -352,7 +337,7 @@ class pointing_frame(tk.Frame):
 
     def set_pointing_message(self, message, is_error=False):
         #Change text in pointing message label - change color to red if the message is an error
-        print("Setting pointing message to: ", message)
+        print("Interface: Setting pointing message to: ", message)
         if is_error:
             self.pointing_message_label.config(fg="red")
         else:
