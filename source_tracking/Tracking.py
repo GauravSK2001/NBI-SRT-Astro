@@ -267,3 +267,12 @@ class SourceTracking:
         """
         self.slew(0, -5, override=True)
         self.set_state("stowed")
+
+    def stop(self):
+        if self.control:
+            az_stop, el_stop = self.control.stop()
+            print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
+            self.set_state("stopped")
+            return az_stop, el_stop
+        else:
+            self.set_state("idle")
