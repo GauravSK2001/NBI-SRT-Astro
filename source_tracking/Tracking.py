@@ -98,8 +98,9 @@ class SourceTracking:
         Command the telescope to move to Az=az, El=el after verifying limits.
         The commanded azimuth is adjusted by the current offset.
         """
-        if not self.check_if_allowed_el(el) and not override:
-            raise ValueError("Elevation out of bounds!")
+        if ~override:
+                if not self.check_if_allowed_el(el) and not override:
+                    raise ValueError("Elevation out of bounds!")
         effective_az = az + self.offset
         if self.control:
             self.control.point(effective_az, el)
@@ -265,7 +266,7 @@ class SourceTracking:
         """
         Stow the telescope to a safe position (Az=0°, El=-5°).
         """
-        self.slew(0, -5, override=True)
+        self.slew(0, -15, override=True)
         self.set_state("stowed")
 
     def stop(self):
