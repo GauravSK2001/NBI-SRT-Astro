@@ -297,7 +297,7 @@ class pointing_frame(tk.Frame):
             except Exception as e:
                 print(f"Error in az/el slew: {e}")
 
-            self.rotor.check_if_reached_target(round(az), round(el))
+            
         else: 
                 
             message = "Holding"
@@ -320,7 +320,7 @@ class pointing_frame(tk.Frame):
             except Exception as e:
                 print(f"Error in az/el slew: {e}")
 
-            self.rotor.check_if_reached_target(round(az), round(el))
+           
         else: 
                 
             message = "Stowed"

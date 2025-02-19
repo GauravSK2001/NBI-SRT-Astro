@@ -273,6 +273,8 @@ class SourceTracking:
             az_stop, el_stop = self.control.stop()
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
             self.set_state("stopped")
+
+            self.current_lb = None
             return az_stop, el_stop
         else:
             self.set_state("idle")
