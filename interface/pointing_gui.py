@@ -178,7 +178,7 @@ class pointing_frame(tk.Frame):
                 #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
                 if self.rotor.control is not None:
                     try:
-                        #self.rotor.slew(az, el)
+                        self.rotor.slew(az, el, override=False)
                         print("Issued slew command to rotor")
                 
                     except Exception as e:
@@ -186,8 +186,7 @@ class pointing_frame(tk.Frame):
                         print(message)
                         self.set_pointing_message(message, is_error=True)
 
-                else:
-                    time.sleep(10)
+            
 
                 message = "Holding"
                 self.set_pointing_message(message)
@@ -216,15 +215,12 @@ class pointing_frame(tk.Frame):
                 #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
                 if self.rotor.control is not None:
                     try:
-                        #self.rotor.slew(az, el)
+                        self.rotor.slew(az, el, override=False)
                         print("Issued slew command to rotor")
                     
                     except Exception as e:
                         print(f"Slewing error {e}")
 
-                    self.rotor.check_if_reached_target(round(az), round(el))
-                else: 
-                    time.sleep(10)
                 
                 message = "Holding"
                 self.set_pointing_message(message)
@@ -239,7 +235,7 @@ class pointing_frame(tk.Frame):
 
     def track(self):
         #Take input l, b coordinates and track if coordinates are valid
-        if not self.rotor.tracking:
+        if self.rotor.state != "tracking":
             try:
                 l = round(float(self.l_var.get()))
                 b = round(float(self.b_var.get()))
@@ -263,6 +259,8 @@ class pointing_frame(tk.Frame):
 
                 self.set_pointing_message(message)
 
+                self.rotor.track_target(L=l, B=b, )
+
 
                 self.track_button.config(text="Stop tracking")
                 self.update()
@@ -273,8 +271,10 @@ class pointing_frame(tk.Frame):
                 self.set_pointing_message(message, is_error=True)
 
         else:
-            self.track_button.config(text="Stop tracking")
+            self.track_button.config(text="Track")
             self.update()
+
+
             
             
 
@@ -289,20 +289,16 @@ class pointing_frame(tk.Frame):
 
         self.set_pointing_message(message)
 
-        #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
+        #If rotor control is present, slew to home position (az=0, el=0)
         if self.rotor.control is not None:
             try:
-                self.rotor.set_pointing(0, 0,overide=False)
-                self.rotor.current_azel = SkyCoord(alt=0*u.deg, az=0*u.deg, frame='altaz')
-                self.rotor.telescope_pointing = self.rotor.current_azel
-                self.rotor.current_lb = None  #No galactic coordinates are given for homing
+                self.rotor.home()
                     
             except Exception as e:
                 print(f"Error in az/el slew: {e}")
 
             self.rotor.check_if_reached_target(round(az), round(el))
         else: 
-            time.sleep(10)
                 
             message = "Holding"
             self.set_pointing_message(message)
@@ -310,8 +306,26 @@ class pointing_frame(tk.Frame):
 
     def stow(self):
         #Slew to stowed position
-        #self.rotor.set_pointing(0, -5, override=True)
-        print("Stowing telescope")
+
+        message = "Stowing telescope"
+        print(message)
+
+        self.set_pointing_message(message)
+
+        #If rotor is present, slew to stowed position
+        if self.rotor.control is not None:
+            try:
+                self.rotor.stow()
+                    
+            except Exception as e:
+                print(f"Error in az/el slew: {e}")
+
+            self.rotor.check_if_reached_target(round(az), round(el))
+        else: 
+                
+            message = "Stowed"
+            self.set_pointing_message(message)
+        
 
     def check_valid_el(self, el):
         #Check that elevation command is within the rotor range, display an error if not.
