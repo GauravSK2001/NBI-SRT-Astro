@@ -293,6 +293,14 @@ class pointing_frame(tk.Frame):
         if self.rotor.control is not None:
             try:
                 self.rotor.home()
+
+                message = "Homed"
+                self.set_pointing_message(message)
+                self.reset_inputs(True, False)
+
+                self.az_var.set(0)
+                self.el_var.set(0)
+
                     
             except Exception as e:
                 print(f"Error in az/el slew: {e}")
@@ -316,6 +324,10 @@ class pointing_frame(tk.Frame):
         if self.rotor.control is not None:
             try:
                 self.rotor.stow()
+                message = "Stowed"
+                self.set_pointing_message(message)
+                self.reset_inputs(True, True)
+
                     
             except Exception as e:
                 print(f"Error in az/el slew: {e}")
@@ -325,6 +337,7 @@ class pointing_frame(tk.Frame):
                 
             message = "Stowed"
             self.set_pointing_message(message)
+            self.reset_inputs(True, True)
         
 
     def check_valid_el(self, el):
@@ -347,6 +360,16 @@ class pointing_frame(tk.Frame):
         
         self.pointing_message_var.set(message)
         self.update()
+
+    def reset_inputs(self, reset_lb=False, reset_azel=False):
+
+        if reset_lb:
+            self.l_var.set("")
+            self.b_var.set("")
+        if reset_azel:
+            self.az_var.set("")
+            self.el_var.set("")
+
          
 
 
