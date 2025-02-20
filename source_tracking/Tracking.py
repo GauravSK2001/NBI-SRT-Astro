@@ -193,9 +193,7 @@ class SourceTracking:
             except ValueError as e:
                 print(f"Error setting pointing: {e}")
                 self.set_state("idle")
-            except StopTelescopeException:
-                print("Caught StopTelescopeException")
-                self.stop()
+
 
     def _monitor_pointing(self, update_time=5):
         """
@@ -247,9 +245,6 @@ class SourceTracking:
                 print("\nSlew interrupted by user (Ctrl+C).")
                 self.stop()
                 print("Returning to terminal...")
-            except StopTelescopeException:
-                print("Caught StopTelescopeException")
-                self.stop()
         
 
     def home(self):
@@ -274,6 +269,6 @@ class SourceTracking:
             self.set_state("stopped")
             time.sleep(3)
             self.set_state("idle")
-            #return az_stop, el_stop
+            return az_stop, el_stop
         else:
             self.set_state("idle")

@@ -6,6 +6,7 @@ import time
 
 from exceptions.stop_exception import StopTelescopeException
 
+
 import numpy as np
 
 from astropy.coordinates import SkyCoord
@@ -177,6 +178,13 @@ class PointingFrame(tk.Frame):
                     try:
                         self.rotor.slew(az, el, override=False)
                         print("Interface: Issued slew command to rotor")
+
+                    except StopTelescopeException:
+                        stopped_az, stopped_el = self.rotor.stop()
+                        print("Interface: issued stop command to rotor")
+
+                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
+                        self.set_pointing_message(message, is_error=True)
                 
                     except Exception as e:
                         message = f"Slewing error {e}"
@@ -215,6 +223,13 @@ class PointingFrame(tk.Frame):
                         self.rotor.slew(az, el, override=False)
                         print("Interface: Issued slew command to rotor")
                     
+                    except StopTelescopeException:
+                        stopped_az, stopped_el = self.rotor.stop()
+                        print("Interface: issued stop command to rotor")
+
+                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
+                        self.set_pointing_message(message, is_error=True)
+
                     except Exception as e:
                         print(f"Interface: Slewing error {e}")
 
@@ -261,6 +276,13 @@ class PointingFrame(tk.Frame):
             self.rotor.track_target(L=l, B=b, )
 
             self.enable_pointing_buttons(buttons=None)
+
+        except StopTelescopeException:
+                        stopped_az, stopped_el = self.rotor.stop()
+                        print("Interface: issued stop command to rotor")
+
+                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
+                        self.set_pointing_message(message, is_error=True)
 
         except ValueError:
             message = "Invalid numeric values for l, b."
@@ -334,6 +356,7 @@ class PointingFrame(tk.Frame):
         self.set_pointing_message(message, is_error=True)
 
         raise StopTelescopeException
+    
 
     def reset_rotor(self):
         print("Interface: Resetting rotor")
