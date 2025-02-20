@@ -3,6 +3,8 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 
+from exceptions.stop_exception import StopTelescopeException
+
 class SourceTracking:
     """
     High-level source tracking class.
@@ -108,6 +110,23 @@ class SourceTracking:
         else:
             print(f"Simulated pointing to Az={effective_az}° (raw: {az}°, offset: {self.offset}°), El={el}°.")
 
+    def check_if_reached_target(self, target_az, target_el, poll_interval=1):
+        """
+        Poll the hardware (or simulate) until the target position is reached.
+        Expects target_az to be the effective azimuth (including offset).
+        """
+        print("Waiting for target to be reached...")
+        while True:
+            if self.control:
+                current_az, current_el = self.control.status()
+                if round(current_az) == round(target_az) and round(current_el) == round(target_el):
+                    print("Target reached.")
+                    break
+            else:
+                # In simulation mode, assume immediate completion
+                break
+            time.sleep(poll_interval)
+
     def tracking_galactic_coordinates(self, L, B):
         """
         Convert Galactic (L, B) coordinates to horizontal (Az, El) coordinates.
@@ -174,6 +193,9 @@ class SourceTracking:
             except ValueError as e:
                 print(f"Error setting pointing: {e}")
                 self.set_state("idle")
+            except StopTelescopeException:
+                print("Caught StopTelescopeException")
+                self.stop()
 
     def _monitor_pointing(self, update_time=5):
         """
@@ -225,6 +247,9 @@ class SourceTracking:
                 print("\nSlew interrupted by user (Ctrl+C).")
                 self.stop()
                 print("Returning to terminal...")
+            except StopTelescopeException:
+                print("Caught StopTelescopeException")
+                self.stop()
         
 
     def home(self):
