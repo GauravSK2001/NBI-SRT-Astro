@@ -65,7 +65,7 @@ class SourceTracking:
             return False
         return True
 
-    def check_if_reached_target(self, target_az, target_el, poll_interval=1):
+    def check_if_reached_target(self, target_az, target_el, poll_interval=3):
         """
         Poll the hardware's current position until it matches the target,
         or until user stops the program.
@@ -78,10 +78,11 @@ class SourceTracking:
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
                     print("\nTarget Reached.")
                     break
+                time.sleep(poll_interval)
             else:
                 # If no hardware, just break
                 break
-            time.sleep(poll_interval)
+            
 
     def boundary_adjustments(self, next_az, current_az):
         """
@@ -207,14 +208,7 @@ class SourceTracking:
                 time.sleep(update_time)
         except KeyboardInterrupt:
             print("\nTracking stopped by user (Ctrl+C).")
-            if self.control:
-                az_stop, el_stop = self.control.stop()
-                print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
-                self.set_state("stopped")
-                time.sleep(3)
-                self.set_state("idle")
-            else:
-                self.set_state("idle")
+            self.stop()
             print("Returning to terminal...")
 
     """
@@ -251,12 +245,7 @@ class SourceTracking:
             
             except KeyboardInterrupt:
                 print("\nSlew interrupted by user (Ctrl+C).")
-                if self.control:
-                    az_stop, el_stop = self.control.stop()
-                    print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
-                    self.set_state("stopped")
-                else:
-                    self.set_state("idle")
+                self.stop()
                 print("Returning to terminal...")
             except StopTelescopeException:
                 print("Caught StopTelescopeException")
@@ -280,10 +269,11 @@ class SourceTracking:
     def stop(self):
         if self.control:
             az_stop, el_stop = self.control.stop()
+            self.current_lb = None
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
             self.set_state("stopped")
-
-            self.current_lb = None
-            return az_stop, el_stop
+            time.sleep(3)
+            self.set_state("idle")
+            #return az_stop, el_stop
         else:
             self.set_state("idle")
