@@ -350,12 +350,16 @@ class PointingFrame(tk.Frame):
             self.reset_inputs(True, True)
 
     def stop(self):
-        print("Interface: Stopping telescope")
 
-        message = "Stopping telescope"
-        self.set_pointing_message(message, is_error=True)
+        if self.rotor.status == "tracking" or self.rotor.status == "slewing":
+            print("Interface: Stopping telescope")
 
-        raise StopTelescopeException
+            message = "Stopping telescope"
+            self.set_pointing_message(message, is_error=True)
+
+            raise StopTelescopeException
+        else:
+            print("Interface: Stop button pressed, rotor is not moving. Ignoring key press.")
     
 
     def reset_rotor(self):
