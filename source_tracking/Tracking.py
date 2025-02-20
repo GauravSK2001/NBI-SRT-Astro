@@ -78,7 +78,7 @@ class SourceTracking:
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
                     print("\nTarget Reached.")
                     break
-                time.sleep(poll_interval)
+                #time.sleep(0.5)
             else:
                 # If no hardware, just break
                 break

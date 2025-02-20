@@ -309,7 +309,7 @@ class PointingFrame(tk.Frame):
                 self.reset_inputs(True, False)
 
                 self.az_var.set(0)
-                self.el_var.set()
+                self.el_var.set(0)
 
                     
             except Exception as e:
@@ -431,6 +431,7 @@ class PointingFrame(tk.Frame):
                 self.stop_button.config(state="disabled")
             if 5 in buttons:
                 self.rotor_reset_button.config(state="disabled")
+        self.update()
 
     def enable_pointing_buttons(self, buttons=None):
         #Enables selected pointing control buttons (if buttons is a List), or all if buttons is None
@@ -463,6 +464,8 @@ class PointingFrame(tk.Frame):
                 self.stop_button.config(state="active")
             if 5 in buttons:
                 self.rotor_reset_button.config(state="active")
+
+        self.update()
 
 
          

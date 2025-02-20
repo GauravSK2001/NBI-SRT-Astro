@@ -12,8 +12,8 @@ root = tk.Tk()
 root.title("NBI SRT Interface")
 root.geometry("650x254")
 
-#control = Rot2Prog()
-control=None
+#control = Rot2Prog() #Comment this line if not using physical rotor
+control=None #Comment this line if using physical rotor
 rotor = SourceTracking(control=control)
 
 
