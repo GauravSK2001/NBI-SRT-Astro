@@ -351,7 +351,7 @@ class PointingFrame(tk.Frame):
 
     def stop(self):
 
-        if self.rotor.status == "tracking" or self.rotor.status == "slewing":
+        if self.rotor.state == "tracking" or self.rotor.state == "slewing":
             print("Interface: Stopping telescope")
 
             message = "Stopping telescope"
