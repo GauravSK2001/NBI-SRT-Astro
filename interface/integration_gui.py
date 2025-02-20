@@ -4,7 +4,7 @@ from tkinter import ttk
 import time
 
 
-class integration_frame(tk.Frame):
+class IntegrationFrame(tk.Frame):
     #Frame containing controls for detector integration
 
     def __init__(self, master, detector, bd, width, height):

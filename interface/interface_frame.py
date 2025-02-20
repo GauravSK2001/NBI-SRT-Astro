@@ -1,8 +1,8 @@
 import tkinter as tk
 
-from interface.pointing_gui import pointing_frame
+from interface.pointing_gui import PointingFrame
 
-from interface.integration_gui import integration_frame
+from interface.integration_gui import IntegrationFrame
 
 
 class Interface(tk.Frame):
@@ -18,10 +18,10 @@ class Interface(tk.Frame):
         #self.add(self.left_panes)
         #self.add(self.right_panes)
         #Create pointing control frame
-        self.pointing_controls = pointing_frame(self, rotor=rotor, bd=0, width=550, height=125)
+        self.pointing_controls = PointingFrame(self, rotor=rotor, bd=0, width=550, height=125)
 
         #Create integration control frame
-        self.integration_controls = integration_frame(self, detector=detector, bd=0, width=500, height=125)
+        self.integration_controls = IntegrationFrame(self, detector=detector, bd=0, width=500, height=125)
 
         #Create calibration control frame
 

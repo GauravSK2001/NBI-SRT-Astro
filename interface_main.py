@@ -10,9 +10,10 @@ from interface.interface_frame import Interface
 root = tk.Tk()
 
 root.title("NBI SRT Interface")
-root.geometry("478x254")
+root.geometry("650x254")
 
-control = Rot2Prog()
+#control = Rot2Prog()
+control=None
 rotor = SourceTracking(control=control)
 
 

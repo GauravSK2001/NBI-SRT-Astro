@@ -3,6 +3,8 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 
+from exceptions.stop_exception import StopTelescopeException
+
 class SourceTracking:
     """
     High-level source tracking class.
@@ -190,6 +192,9 @@ class SourceTracking:
             except ValueError as e:
                 print(f"Error setting pointing: {e}")
                 self.set_state("idle")
+            except StopTelescopeException:
+                print("Caught StopTelescopeException")
+                self.stop()
 
     def _monitor_pointing(self, update_time=5):
         """
@@ -253,6 +258,9 @@ class SourceTracking:
                 else:
                     self.set_state("idle")
                 print("Returning to terminal...")
+            except StopTelescopeException:
+                print("Caught StopTelescopeException")
+                self.stop()
         
 
     def home(self):

@@ -1,0 +1,2 @@
+class StopTelescopeException(Exception):
+    pass
