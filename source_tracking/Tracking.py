@@ -61,7 +61,7 @@ class SourceTracking:
     def check_if_allowed_el(self, el):
         """Ensure elevation is within acceptable limits."""
         if not (self.min_el <= el <= self.max_el):
-            print(f"Elevation {round(el)}° out of range ({self.min_el}° - {self.max_el}°).")
+            print(f"Elevation {round(el)}° is out of range of allowed values ({self.min_el}° - {self.max_el}°).\n")
             return False
         return True
 
@@ -81,19 +81,28 @@ class SourceTracking:
                 #time.sleep(0.5)
             else:
                 # If no hardware, just break
+                print("\nTarget Reached.")
                 break
             
 
-    def boundary_adjustments(self, next_az, current_az):
+    def boundary_adjustments(self,next_az, current_az):
         """
         Adjust azimuth to avoid unnecessary 0/360° crossing.
         Updates self.offset and returns the effective azimuth.
+        
         """
         diff = next_az - current_az
-        if diff > 358:
-            self.offset -= 360
-        elif diff < -358:
-            self.offset += 360
+        
+        # print(f"next_az: {next_az}")
+        # print(f"current_az: {current_az}")
+        # print(f"diff: {diff}")
+        # print(f"offset: {self.offset}")
+
+        if diff < -357:
+            self.offset = 360
+        elif diff > 357 and self.offset >=360:
+            self.offset = -360
+        
         return next_az + self.offset
 
     def set_pointing(self, az, el, override=False):
@@ -102,13 +111,13 @@ class SourceTracking:
         The commanded azimuth is adjusted by the current offset.
         """
         if ~override:
-                if not self.check_if_allowed_el(el) and not override:
-                    raise ValueError("Elevation out of bounds!")
-        effective_az = az + self.offset
+                if not self.check_if_allowed_el(el):
+                    raise ValueError("\nElevation out of bounds!")
+
         if self.control:
-            self.control.point(effective_az, el)
+            self.control.point(az, el)
         else:
-            print(f"Simulated pointing to Az={effective_az}° (raw: {az}°, offset: {self.offset}°), El={el}°.")
+            print(f"\nSimulated pointing to Az={az}° (raw: {az-self.offset}°, offset: {self.offset}°), El={el}°.\n")
 
 
 
@@ -145,24 +154,25 @@ class SourceTracking:
         # Round the raw computed azimuth/elevation.
         az_cmd = round(az)
         el_cmd = round(el)
-        
-        # Determine the current effective azimuth.
         if self.telescope_pointing is None:
-            current_effective_az = az_cmd + self.offset
-        else:
-            current_effective_az = self.telescope_pointing.az.degree
-        
-        # Adjust azimuth to avoid unnecessary wrap-around.
-        effective_az = self.boundary_adjustments(az_cmd, current_effective_az)
+            if self.control:
+                current_az, current_el = self.control.status()
+            else:
+                current_az = 0
+                current_el = 0
 
-        # If no previous pointing exists or the change is >= 1°.
-        new_azel = SkyCoord(az=az_cmd * u.deg, alt=el_cmd * u.deg, frame='altaz')
+        current_az = current_az if self.telescope_pointing is None else self.telescope_pointing.az.deg
+        effective_az = round(self.boundary_adjustments(az, current_az))
+
+        new_azel = SkyCoord(az=az * u.deg, alt=el * u.deg, frame='altaz')
         
         if (self.telescope_pointing is None or 
             self.telescope_pointing.separation(new_azel) >= 1 * u.deg):
+            if self.telescope_pointing is not None:
+                print('sep',self.telescope_pointing.separation(new_azel).degree)
             try:
                 # Command the telescope (set_pointing adds the offset).
-                self.set_pointing(az_cmd, el_cmd, override=False)
+                self.set_pointing(effective_az, el_cmd, override=False)
                 
                 # Update stored positions using the effective azimuth.
                 self.current_azel = SkyCoord(az=az_cmd * u.deg, alt=el_cmd * u.deg, frame='altaz')
@@ -176,11 +186,11 @@ class SourceTracking:
                     self.set_state("tracking")
             
             except ValueError as e:
-                print(f"Error setting pointing: {e}")
-                self.set_state("idle")
+                self.stop()
+                raise ValueError(e)
+            
 
-
-    def _monitor_pointing(self, update_time=5):
+    def _monitor_pointing(self, update_time=1):
         """
         Continuously update the telescope pointing every `update_time` seconds.
         """
@@ -207,30 +217,42 @@ class SourceTracking:
         self._monitor_pointing(update_time=update_time)
 
     def slew(self, az, el, override=False):
-            """
-            Slew the telescope to the specified Azimuth and Elevation.
-            Blocks until the target is reached or the user interrupts with Ctrl+C.
-            """
-            try:
-                self.set_state("slewing")
-                az_cmd, el_cmd = round(az), round(el)
-                self.set_pointing(az_cmd, el_cmd, override=override)
-                self.current_azel = SkyCoord(az=az_cmd * u.deg, alt=el_cmd * u.deg, frame='altaz')
-                self.telescope_pointing = self.current_azel
-                print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
-                self.check_if_reached_target(az_cmd, el_cmd)
+        """
+        Slew the telescope to the specified Azimuth and Elevation.
+        Blocks until the target is reached or the user interrupts with Ctrl+C.
+        """
+        try:
+            self.set_state("slewing")
+            az_cmd, el_cmd = round(az), round(el)
+            
+            
+            if self.telescope_pointing is None:
+                if self.control:
+                    current_az, current_el = self.control.status()
+                else:
+                    current_az = 0
+                    current_el = 0
 
-                self.set_state("idle")
+            current_az = current_az if self.telescope_pointing is None else self.telescope_pointing.az.deg
+            effective_az = round(self.boundary_adjustments(az, current_az))
             
-            except ValueError as e:
-                print(f"Error setting pointing: {e}")
-                self.set_state("idle")
+            self.set_pointing(effective_az, el_cmd, override=override)
+            self.current_azel = SkyCoord(az=az_cmd * u.deg, alt=el_cmd * u.deg, frame='altaz')
+            self.telescope_pointing = SkyCoord(az=effective_az * u.deg, alt=el_cmd * u.deg, frame='altaz')
             
-            except KeyboardInterrupt:
-                print("\nSlew interrupted by user (Ctrl+C).")
-                self.stop()
-                print("Returning to terminal...")
+            print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
+            self.check_if_reached_target(az_cmd, el_cmd)
+            self.set_state("idle")
         
+        except ValueError as e:
+            print(f"Error setting pointing: {e}")
+            self.set_state("idle")
+        
+        except KeyboardInterrupt:
+            print("\nSlew interrupted by user (Ctrl+C).")
+            self.stop()
+            print("Returning to terminal...")
+    
 
     def home(self):
         """
@@ -250,11 +272,20 @@ class SourceTracking:
         if self.control:
             az_stop, el_stop = self.control.stop()
             self.set_state("stopped")
+            #just easier to code that everytime it wraps around 0->360, the code will bring the rotor back to 0 offset. Will also not tangle the wires or my brainz
             self.current_lb = None
+            self.offset = 0
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
-            self.set_state("stopped")
+            
             time.sleep(3)
             self.set_state("idle")
             return az_stop, el_stop
         else:
+            self.set_state("stopped")
+            
+            self.current_lb = None
+            self.offset = 0
+            
+            time.sleep(3)
             self.set_state("idle")
+            #i need beer

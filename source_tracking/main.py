@@ -97,8 +97,11 @@ def main():
             except ValueError:
                 print("Invalid numeric values for L, B.")
                 continue
-
-            rotor.track_target(l_val, b_val, update_time=5)
+            try:
+                
+                rotor.track_target(l_val, b_val, update_time=5)
+            except ValueError as e:
+                print(f"Error tracking target: {e}")
             continue
 
         # Slewing: s <L> <B>  OR  s <Az> <El> azel
