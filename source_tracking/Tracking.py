@@ -93,14 +93,14 @@ class SourceTracking:
         """
         diff = next_az - current_az
         
-        # print(f"next_az: {next_az}")
-        # print(f"current_az: {current_az}")
-        # print(f"diff: {diff}")
-        # print(f"offset: {self.offset}")
+        print(f"next_az: {next_az}")
+        print(f"current_az: {current_az}")
+        print(f"diff: {diff}")
+        print(f"offset: {self.offset}")
 
-        if diff < -357:
+        if diff < -358:
             self.offset = 360
-        elif diff > 357 and self.offset >=360:
+        elif diff > 358:
             self.offset = -360
         
         return next_az + self.offset
