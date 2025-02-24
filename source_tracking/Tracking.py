@@ -110,7 +110,7 @@ class SourceTracking:
         Command the telescope to move to Az=az, El=el after verifying limits.
         The commanded azimuth is adjusted by the current offset.
         """
-        if ~override:
+        if not override:
                 if not self.check_if_allowed_el(el):
                     raise ValueError("\nElevation out of bounds!")
 
