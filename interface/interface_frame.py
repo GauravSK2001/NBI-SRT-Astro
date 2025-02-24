@@ -22,6 +22,7 @@ class Interface(tk.Frame):
 
         #Create integration control frame
         self.integration_controls = IntegrationFrame(self, detector=detector, bd=0, width=500, height=125)
+        detector.set_interface_frame(self.integration_controls)
 
         #Create calibration control frame
 
