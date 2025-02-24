@@ -1,7 +1,7 @@
 import sys
 from Controls import Rot2Prog
 from Tracking import SourceTracking  # Adjust the import if needed.
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord,Longitude
 from astropy import units as u
 
 def print_help():
@@ -146,6 +146,7 @@ def main():
             else:
                 try:
                     az, el = control.status()
+                    az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
                     print(f"Az={round(az)}°, El={round(el)}°")
                 except Exception as e:
                     print(f"Error reading status: {e}")
