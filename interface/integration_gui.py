@@ -3,6 +3,8 @@ from tkinter import ttk
 
 import time
 
+from threading import *
+
 
 
 class IntegrationFrame(tk.Frame):
@@ -70,7 +72,7 @@ class IntegrationFrame(tk.Frame):
 
         if t is None: 
             try:
-                t = float(self.int_time_var.get())
+                t = int(self.int_time_var.get())
 
             except ValueError:
                 message = "Invalid numeric values for integration time"
@@ -88,7 +90,7 @@ class IntegrationFrame(tk.Frame):
             while time_elapsed <= t:
                 self.int_time_elapsed.set(time_elapsed)
 
-                message = f"Interface: Integrating: {t - time_elapsed} s remaining"
+                message = f"Integrating: {t - time_elapsed} s remaining"
                 self.set_int_message(message)
 
                 time.sleep(1)
@@ -101,10 +103,14 @@ class IntegrationFrame(tk.Frame):
             #detector.integrate(t)
             print("Interface: Integrating with detector.")
 
-            self.detector.start(t)
+            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t])
+            integrate_thread.start()
+
+
+
 
     def update_progressbar(self, t, time_elapsed):
-        message = f"Interface: Integrating: {t - time_elapsed} s remaining"
+        message = f"Integrating for {t} s: {t - time_elapsed} s remaining"
         self.set_int_message(message)
 
         self.int_time_elapsed.set(time_elapsed)
@@ -114,6 +120,10 @@ class IntegrationFrame(tk.Frame):
         #Stop detector integration
 
         self.detector.stop()
+
+        message = f"Integration Stopped"
+        self.set_int_message(message)
+        
 
 
     def set_int_message(self, message, is_error=False):

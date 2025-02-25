@@ -35,33 +35,33 @@ class ProgressBarCounter():
         #Updates status to "idle"
 
         print("Detector: Stopping")
-        self.value=0
-        self.maximum = 1
         
         self.status = "idle"
 
 
 
 
-    def int_loop(self):
+    def integrate(self, int_time):
         #Main loop for the object, polls self.status every second.
 
-        while True:
+        self.value = 0
+        self.maximum = int_time
 
-            if self.interface_frame is None:
-                continue
-            print(self.status)
-            if self.status == "active":
-                print(f"Detector: Integrating {self.value}/{self.maximum}")
-                self.value += 1
+        self.status = "active"
+
+        while self.status == "active":
+            print(f"Detector: Integrating {self.value}/{self.maximum}")
+            
 
 
-                self.interface_frame.set_time_elapsed(self.maximum, self.value)
+            self.interface_frame.update_progressbar(self.maximum, self.value)
 
-                if self.value == self.maximum:
-                    self.status = "idle"
-                    self.interface_frame.set_time_elapsed(self.value)
+            if self.value >= self.maximum:
+                self.status = "idle"
+                self.interface_frame.update_progressbar(self.maximum, self.value)
+                self.interface_frame.set_int_message("Integration Complete")
 
-                time.sleep(1)
+            time.sleep(1)
+            self.value += 1
 
 
