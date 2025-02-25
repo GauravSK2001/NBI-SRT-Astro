@@ -393,11 +393,12 @@ class SourceTracking:
             float: The adjusted azimuth.
         """
         diff = next_azimuth - current_azimuth
-        print(f"current_az: {current_azimuth}")
+        print('\nTracking is Updated:')
+        print(f"Telescope Pointing: {current_azimuth:.0f}")
         print(f"diff: {diff}")
         print(f"offset: {self.offset}")
         print(f"with offset: {next_azimuth + self.offset}")
-        print(f"next_az: {next_azimuth}")
+        print(f"Source Azimuth: {next_azimuth}\n")
         
         if self.offset==0 and diff > 350: # going from 0 to -10
             self.offset = -360
@@ -480,11 +481,11 @@ class SourceTracking:
     
     def PPPorint(self,next_azimuth, current_azimuth):
         diff = next_azimuth - current_azimuth
-        print(f"current_az: {current_azimuth}")
+        print(f"Telescope Pointing: {current_azimuth:.0f}")
         print(f"diff: {diff}")
         print(f"offset: {self.offset}")
         print(f"with offset: {next_azimuth + self.offset}")
-        print(f"next_az: {next_azimuth}")
+        print(f"Source Azimuth: {next_azimuth}")
         
         
     def update_pointing(self, L, B):
