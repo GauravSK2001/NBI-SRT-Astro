@@ -38,12 +38,56 @@ class SourceTracking:
         # Hardware control interface
         self.control = control
 
+        #Software GUI - set to None initially, but added if GUI is used.
+        self.interface_frame = None
+
         # Single state attribute – only one state is active at any time.
         self.state = "idle"
 
         
         # Offset to be added to computed azimuth values (to manage wrap-around)
         self.offset = 0
+
+    #GUI update methods - If no GUI is present, the method does nothing.
+
+    def set_interface_frame(self, interface_frame):
+        #Take interface frame
+        self.interface_frame = interface_frame
+        print("Detector: Added interface")
+
+    def update_gui_message(self, message, is_error=False):
+        #Update GUI status label, if GUI is present
+
+        if self.interface_frame is not None:
+            print("Rotor: Updating pointing message to: ", message)
+            self.interface_frame.set_pointing_message(message, is_error)
+
+    def update_gui_azel_coordinates(self, az, el):
+        #Update GUI azimuth and elevation entries during tracking, if GUI is present
+
+        if self.interface_frame is not None:
+            print(f"Rotor: Updating GUI azel to az {az}, el {el}")
+            self.interface_frame.set_azel_entries(az, el)
+
+    def enable_gui_buttons(self):
+        #Re-enable GUI buttons after slew completes or tracking is stopped, if GUI is present
+
+        if self.interface_frame is not None:
+            if self.interface_frame.selector_state:
+                buttons = None
+            else:
+                buttons = [0, 2, 3, 4, 5]
+
+            self.interface_frame.enable_buttons(buttons)
+
+
+    def update_gui_pointing_plot(self, az, el):
+        #STUB
+        #Update GUI pointing plot with current az, el coordinates.
+        return None
+
+
+    #Rotor methods
 
     def set_state(self, new_state):
         """Set the new state after verifying it's valid."""
@@ -61,12 +105,14 @@ class SourceTracking:
     def check_if_reached_target(self, target_az, target_el, poll_interval=5):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
-        while True:
+        while self.state == "slewing" or self.state == "tracking":
             if self.control:
                 current_az, current_el = self.control.status()
+                
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
                     print("\nTarget Reached.")
+                    self.update_gui_azel_coordinates(current_az, current_el)
                     break
             else:
                 # If no hardware, just break
@@ -214,8 +260,8 @@ class SourceTracking:
                 
                 # Update state if necessary.
                 if self.state != "tracking":
-                    self.check_if_reached_target(effective_telescope_az, el_round)
                     self.set_state("tracking")
+                    self.check_if_reached_target(effective_telescope_az, el_round)
             
             except ValueError as e:
                 self.stop()
@@ -241,7 +287,7 @@ class SourceTracking:
         Continuously update the telescope pointing every `update_time` seconds.
         """
         try:
-            while True:
+            while self.state == "tracking":
                 self._update_if_source_available()
                 time.sleep(update_time)
         except KeyboardInterrupt:
@@ -297,6 +343,8 @@ class SourceTracking:
             print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
             self.check_if_reached_target(az_cmd, el_cmd)
             self.set_state("idle")
+
+            self.update_gui_message("Holding")
         
         except ValueError as e:
             print(f"Error setting pointing: {e}")
@@ -314,12 +362,16 @@ class SourceTracking:
         self.slew(0, 0, override=True)
         self.set_state("home")
 
+        self.update_gui_message(f"Homed")
+
     def stow(self):
         """
         Stow the telescope to a safe position (Az=0°, El=-15°).
         """
         self.slew(0, -15, override=True)
         self.set_state("stowed")
+
+        self.update_gui_message(f"Stowed")
 
     def stop(self):
         """
@@ -333,6 +385,11 @@ class SourceTracking:
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
             time.sleep(2)
             self.set_state("idle")
+
+            self.update_gui_message(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.", is_error=True)
+            
+
+
             return az_stop, el_stop
         else:
             self.set_state("stopped")

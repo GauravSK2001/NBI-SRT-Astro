@@ -19,6 +19,7 @@ class Interface(tk.Frame):
         #self.add(self.right_panes)
         #Create pointing control frame
         self.pointing_controls = PointingFrame(self, rotor=rotor, bd=0, width=550, height=125)
+        rotor.set_interface_frame(self.pointing_controls)
 
         #Create integration control frame
         self.integration_controls = IntegrationFrame(self, detector=detector, bd=0, width=500, height=125)
