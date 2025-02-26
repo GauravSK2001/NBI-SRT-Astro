@@ -14,7 +14,7 @@ from threading import *
 root = tk.Tk()
 
 root.title("NBI SRT Interface")
-root.geometry("650x254")
+root.geometry("650x275")
 
 control = Rot2Prog() #Comment this line if not using physical rotor
 #control=None #Comment this line if using physical rotor

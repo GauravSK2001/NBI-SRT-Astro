@@ -16,6 +16,9 @@ class IntegrationFrame(tk.Frame):
 
         #Initialize detector (waveguide)
         self.detector = detector
+
+        #Variable for spectrum save file name
+        self.savefilename_var = tk.StringVar()
         
         #Variables for messages and integration time input
         self.int_time_var = tk.StringVar()
@@ -25,6 +28,9 @@ class IntegrationFrame(tk.Frame):
         self.int_message_var = tk.StringVar()
 
         #Create labels for integration controls
+
+        self.savefilename_label = tk.Label(self, text="File Name:")
+
         self.int_control_label = tk.Label(self, text="Integration Controls", justify="center")
 
         self.int_time_label = tk.Label(self, text="Integration Time (s):")
@@ -33,7 +39,9 @@ class IntegrationFrame(tk.Frame):
 
         self.int_message_label = tk.Label(self, textvariable=self.int_message_var, justify="left", anchor="w")
 
-        #Create entry and buttons for integration
+        #Create entry and buttons for integration and file saving
+
+        self.savefilename_entry = tk.Entry(self, textvariable=self.savefilename_var)
 
         self.int_time_entry = tk.Entry(self, textvariable=self.int_time_var)
 
@@ -51,21 +59,25 @@ class IntegrationFrame(tk.Frame):
 
         self.int_control_label.grid(column=0, row=0, columnspan=8, pady=2)
 
-        self.int_time_label.grid(column=0, row=1, pady=2, sticky="w")
+        self.savefilename_label.grid(column=2, row=1, pady=2, sticky="w")
 
-        self.int_time_entry.grid(column=1, row=1, columnspan=2, pady=2, sticky="w")
+        self.savefilename_entry.grid(column=3, row=1, columnspan=2, pady=2, sticky="w")
 
-        self.integrate_button.grid(column=4, row=1, padx=4, pady=2, sticky="w")
+        self.int_time_label.grid(column=0, row=2, pady=2, sticky="w")
 
-        self.onesec_int_button.grid(column=5, row=1, padx=4, pady=2, sticky="w")
+        self.int_time_entry.grid(column=1, row=2, columnspan=2, pady=2, sticky="w")
 
-        self.stop_int_button.grid(column=6, row=1, padx=4, pady=2, sticky="w")
+        self.integrate_button.grid(column=4, row=2, padx=4, pady=2, sticky="w")
 
-        self.int_time_status_label.grid(column=0, row=2, pady=2, sticky="w")
+        self.onesec_int_button.grid(column=5, row=2, padx=4, pady=2, sticky="w")
 
-        self.int_message_label.grid(column=1, row=2, columnspan=7, pady=2, sticky="w")
+        self.stop_int_button.grid(column=6, row=2, padx=4, pady=2, sticky="w")
 
-        self.int_progress_bar.grid(column=0, row=3, columnspan=8, padx=4, pady=2, sticky="w")
+        self.int_time_status_label.grid(column=0, row=3, pady=2, sticky="w")
+
+        self.int_message_label.grid(column=1, row=3, columnspan=7, pady=2, sticky="w")
+
+        self.int_progress_bar.grid(column=0, row=4, columnspan=8, padx=4, pady=2, sticky="w")
 
     def integrate(self, t=None):
         #Take input integration time and integrate.
@@ -98,6 +110,8 @@ class IntegrationFrame(tk.Frame):
 
             message = "Complete"
             self.set_int_message(message)
+
+            self.detector.save_spectrum(self.savefilename_var.get())
 
         else:
             #detector.integrate(t)

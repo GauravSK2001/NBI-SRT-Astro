@@ -38,6 +38,9 @@ class ProgressBarCounter():
         
         self.status = "idle"
 
+    def save_spectrum(self, fname):
+        print("Detector: Simulating saving spectrum to ", fname)
+
 
 
 
