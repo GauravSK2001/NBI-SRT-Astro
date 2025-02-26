@@ -61,18 +61,19 @@ class SourceTracking:
     def check_if_reached_target(self, target_az, target_el, poll_interval=5):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
-        while True:
+        while self.status != "tracking":
             if self.control:
                 current_az, current_el = self.control.status()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
                     print("\nTarget Reached.")
                     break
+                time.sleep(poll_interval)  # Pause between checks
             else:
                 # If no hardware, just break
                 print("\nTarget Reached.")
                 break
-            time.sleep(poll_interval)  # Pause between checks
+            
 
     def boundary_adjustment(self, next_azimuth, current_azimuth):
         """
@@ -186,14 +187,15 @@ class SourceTracking:
         Update telescope pointing if the change in position exceeds 1°.
         Adjusts the commanded azimuth using boundary adjustments.
         """
+        # Retrieve current telescope azimuth.
+        current_telescope_az, current_telescope_el = self.get_current_telescope_az_el()
         # Get current time and computed horizontal coordinates.
         current_time_iso, source_az, source_el = self.tracking_galactic_coordinates(L, B)
         # Round the raw computed azimuth/elevation.
         az_round = round(source_az)
         el_round = round(source_el)
 
-        # Retrieve current telescope azimuth.
-        current_telescope_az, current_telescope_el = self.get_current_telescope_az_el()
+
         self.PPPorint(source_az, current_telescope_az)
         # Create a new horizontal coordinate for separation check.
         new_azel = SkyCoord(az=source_az * u.deg, alt=source_el * u.deg, frame='altaz')
@@ -205,13 +207,17 @@ class SourceTracking:
         if self.current_telescope_azel is None or self.current_telescope_azel.separation(new_azel) >= 1 * u.deg or self.state == "idle":
             
             try:
+                # Get current time and computed horizontal coordinates.
+                current_time_iso, source_az, source_el = self.tracking_galactic_coordinates(L, B)
+                # Round the raw computed azimuth/elevation.
+                az_round = round(source_az)
+                el_round = round(source_el)
                 effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az)
+                print(f"[{current_time_iso}] Updated pointing to Az={az_round}°, El={el_round}°")
                 # Command the telescope (set_pointing adds the offset).
                 self.set_pointing(effective_telescope_az, el_round, override=False)
                 # Update stored positions.
                 self.update_stored_positions(source_az, source_el, effective_telescope_az, L, B)
-                print(f"[{current_time_iso}] Updated pointing to Az={az_round}°, El={el_round}°")
-                
                 # Update state if necessary.
                 if self.state != "tracking":
                     self.check_if_reached_target(effective_telescope_az, el_round)
