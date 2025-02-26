@@ -309,7 +309,6 @@ from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
 
-from exceptions.stop_exception import StopTelescopeException
 
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
@@ -347,9 +346,10 @@ class SourceTracking:
 
         # Single state attribute – only one state is active at any time.
         self.state = "idle"
+
         
         # Offset to be added to computed azimuth values (to manage wrap-around)
-        self.offset = 360
+        self.offset = 0
 
     def set_state(self, new_state):
         """Set the new state after verifying it's valid."""
@@ -364,7 +364,7 @@ class SourceTracking:
             return False
         return True
 
-    def check_if_reached_target(self, target_az, target_el, poll_interval=5):
+    def check_if_reached_target(self, target_az, target_el, poll_interval=3):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
         while True:
@@ -392,19 +392,23 @@ class SourceTracking:
             float: The adjusted azimuth.
         """
         diff = next_azimuth - current_azimuth
-
-        if diff > 358:
-            self.offset = 0
-        elif diff < -350:
-            self.offset = 360
-
-
-        print(f"current_az: {current_azimuth}")
+        print('\nTracking is Updated:')
+        print(f"Telescope Pointing: {current_azimuth:.0f}")
         print(f"diff: {diff}")
         print(f"offset: {self.offset}")
         print(f"with offset: {next_azimuth + self.offset}")
-        print(f"next_az: {next_azimuth}")
+        print(f"Source Azimuth: {next_azimuth}\n")
         
+        if self.offset==0 and diff > 350: # going from 0 to -10
+            self.offset = -360
+        elif self.offset==-360 and diff < -350: # going from -10 to 0
+            self.offset = 0
+        elif self.offset==360 and diff > 350: # going from 361 to 360?
+            self.offset = 0
+        elif self.offset==0 and diff < -350: # going from 360 to 361
+            self.offset = 360
+        else:
+            pass
         return next_azimuth + self.offset
 
     def set_pointing(self, az, el, override=False):
@@ -474,7 +478,15 @@ class SourceTracking:
         
         self.current_telescope_azel = SkyCoord(az=effective_az * u.deg, alt=round(el) * u.deg, frame='altaz')
     
-
+    def PPPorint(self,next_azimuth, current_azimuth):
+        diff = next_azimuth - current_azimuth
+        print(f"Telescope Pointing: {current_azimuth:.0f}")
+        print(f"diff: {diff}")
+        print(f"offset: {self.offset}")
+        print(f"with offset: {next_azimuth + self.offset}")
+        print(f"Source Azimuth: {next_azimuth}")
+        
+        
     def update_pointing(self, L, B):
         """
         Update telescope pointing if the change in position exceeds 1°.
@@ -488,18 +500,18 @@ class SourceTracking:
 
         # Retrieve current telescope azimuth.
         current_telescope_az, current_telescope_el = self.get_current_telescope_az_el()
-
+        self.PPPorint(source_az, current_telescope_az)
         # Create a new horizontal coordinate for separation check.
         new_azel = SkyCoord(az=source_az * u.deg, alt=source_el * u.deg, frame='altaz')
         if self.current_telescope_azel is not None:
             separation = self.current_telescope_azel.separation(new_azel).degree
             print('Separation:', separation,'\n')
-        effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az)
+        
         # Update pointing if the change exceeds 1°.
         if self.current_telescope_azel is None or self.current_telescope_azel.separation(new_azel) >= 1 * u.deg or self.state == "idle":
             
             try:
-                
+                effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az)
                 # Command the telescope (set_pointing adds the offset).
                 self.set_pointing(effective_telescope_az, el_round, override=False)
                 # Update stored positions.
@@ -542,7 +554,7 @@ class SourceTracking:
             self._handle_keyboard_interrupt()
 
 
-    def track_target(self, L, B, update_time=1):
+    def track_target(self, L, B, update_time=3):
         """
         Start continuous tracking of target Galactic coordinates (L, B).
         """
@@ -623,14 +635,14 @@ class SourceTracking:
             az_stop, el_stop = self.control.stop()
             self.set_state("stopped")
             self.current_source_lb = None
-            self.offset = 360
+            self.offset = 0 if self.offset != 360 else -360
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
-            time.sleep(3)
+            time.sleep(2)
             self.set_state("idle")
             return az_stop, el_stop
         else:
             self.set_state("stopped")
             self.current_source_lb = None
-            self.offset = 360
-            time.sleep(3)
+            self.offset = 0 if self.offset != 360 else -360
+            time.sleep(2)
             self.set_state("idle")
