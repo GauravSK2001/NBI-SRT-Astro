@@ -3,6 +3,9 @@ from tkinter import ttk
 
 import time
 
+from threading import *
+
+
 
 class IntegrationFrame(tk.Frame):
     #Frame containing controls for detector integration
@@ -38,6 +41,8 @@ class IntegrationFrame(tk.Frame):
 
         self.onesec_int_button = tk.Button(self, text="1 second integration", command=lambda: self.integrate(1))
 
+        self.stop_int_button = tk.Button(self, text="Stop integration", width=13, command=self.stop_integration)
+
         #Create integration progress bar
 
         self.int_progress_bar = ttk.Progressbar(self, orient="horizontal", variable=self.int_time_elapsed, length=450)
@@ -54,6 +59,8 @@ class IntegrationFrame(tk.Frame):
 
         self.onesec_int_button.grid(column=5, row=1, padx=4, pady=2, sticky="w")
 
+        self.stop_int_button.grid(column=6, row=1, padx=4, pady=2, sticky="w")
+
         self.int_time_status_label.grid(column=0, row=2, pady=2, sticky="w")
 
         self.int_message_label.grid(column=1, row=2, columnspan=7, pady=2, sticky="w")
@@ -65,14 +72,14 @@ class IntegrationFrame(tk.Frame):
 
         if t is None: 
             try:
-                t = float(self.int_time_var.get())
+                t = int(self.int_time_var.get())
 
             except ValueError:
                 message = "Invalid numeric values for integration time"
-                print(message)
+                
                 self.set_int_message(message, is_error=True)
 
-        print(f"Integrating for {t} seconds")
+        print(f"Interface: Integrating for {t} seconds")
 
         self.int_progress_bar.config(maximum=int(t))
 
@@ -94,12 +101,34 @@ class IntegrationFrame(tk.Frame):
 
         else:
             #detector.integrate(t)
-            print("Integrating with detector.")
+            print("Interface: Integrating with detector.")
+
+            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t])
+            integrate_thread.start()
+
+
+
+
+    def update_progressbar(self, t, time_elapsed):
+        message = f"Integrating for {t} s: {t - time_elapsed} s remaining"
+        self.set_int_message(message)
+
+        self.int_time_elapsed.set(time_elapsed)
+
+    
+    def stop_integration(self):
+        #Stop detector integration
+
+        self.detector.stop()
+
+        message = f"Integration Stopped"
+        self.set_int_message(message)
+        
 
 
     def set_int_message(self, message, is_error=False):
         #Change text in pointing message label - change color to red if the message is an error
-        print("Setting integration message to: ", message)
+        print("Interface: Setting integration message to: ", message)
         if is_error:
             self.int_message_label.config(fg="red")
         else:
