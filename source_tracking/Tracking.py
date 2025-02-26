@@ -105,7 +105,7 @@ class SourceTracking:
     def check_if_reached_target(self, target_az, target_el, poll_interval=5):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
-        while self.state == "slewing" or self.state == "tracking":
+        while self.state == "slewing":
             if self.control:
                 current_az, current_el = self.control.status()
                 
@@ -232,14 +232,15 @@ class SourceTracking:
         Update telescope pointing if the change in position exceeds 1°.
         Adjusts the commanded azimuth using boundary adjustments.
         """
+        # Retrieve current telescope azimuth.
+        current_telescope_az, current_telescope_el = self.get_current_telescope_az_el()
         # Get current time and computed horizontal coordinates.
         current_time_iso, source_az, source_el = self.tracking_galactic_coordinates(L, B)
         # Round the raw computed azimuth/elevation.
         az_round = round(source_az)
         el_round = round(source_el)
 
-        # Retrieve current telescope azimuth.
-        current_telescope_az, current_telescope_el = self.get_current_telescope_az_el()
+
         self.PPPorint(source_az, current_telescope_az)
         # Create a new horizontal coordinate for separation check.
         new_azel = SkyCoord(az=source_az * u.deg, alt=source_el * u.deg, frame='altaz')
@@ -251,17 +252,18 @@ class SourceTracking:
         if self.current_telescope_azel is None or self.current_telescope_azel.separation(new_azel) >= 1 * u.deg or self.state == "idle":
             
             try:
+                # Get current time and computed horizontal coordinates.
+                current_time_iso, source_az, source_el = self.tracking_galactic_coordinates(L, B)
+                # Round the raw computed azimuth/elevation.
+                az_round = round(source_az)
+                el_round = round(source_el)
                 effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az)
+                print(f"[{current_time_iso}] Updated pointing to Az={az_round}°, El={el_round}°")
                 # Command the telescope (set_pointing adds the offset).
                 self.set_pointing(effective_telescope_az, el_round, override=False)
                 # Update stored positions.
                 self.update_stored_positions(source_az, source_el, effective_telescope_az, L, B)
-                print(f"[{current_time_iso}] Updated pointing to Az={az_round}°, El={el_round}°")
                 
-                # Update state if necessary.
-                if self.state != "tracking":
-                    self.set_state("tracking")
-                    self.check_if_reached_target(effective_telescope_az, el_round)
             
             except ValueError as e:
                 self.stop()
@@ -274,14 +276,6 @@ class SourceTracking:
         if self.current_source_lb:
             self.update_pointing(self.current_source_lb.l.degree, self.current_source_lb.b.degree)
 
-    def _handle_keyboard_interrupt(self):
-        """
-        Handle a keyboard interrupt (Ctrl+C).
-        """
-        print("\nTracking stopped by user (Ctrl+C).")
-        self.stop()
-        print("Returning to terminal...")
-
     def _monitor_pointing(self, update_time=1):
         """
         Continuously update the telescope pointing every `update_time` seconds.
@@ -293,13 +287,29 @@ class SourceTracking:
         except KeyboardInterrupt:
             self._handle_keyboard_interrupt()
 
+    def _handle_keyboard_interrupt(self):
+        """
+        Handle a keyboard interrupt (Ctrl+C).
+        """
+        print("\nTracking stopped by user (Ctrl+C).")
+        self.stop()
+        print("Returning to terminal...")
 
+    
     def track_target(self, L, B, update_time=5):
         """
         Start continuous tracking of target Galactic coordinates (L, B).
         """
         self.current_source_lb = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')
         print(f"\nTarget galactic coordinates set to: L={L:.2f}°, B={B:.2f}°.")
+
+        __, az, el = self.tracking_galactic_coordinates(L, B)
+
+        self.slew(az, el, override=False)
+        self.set_state("tracking")
+
+        self.update_gui_message(f"Tracking l:{L:.2f}, b:{B:.2f}")
+
         self._monitor_pointing(update_time=update_time)
     
     def get_current_telescope_az_el(self):

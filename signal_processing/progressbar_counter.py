@@ -29,7 +29,6 @@ class ProgressBarCounter():
         
         self.status = "active"
 
-        
 
     def stop(self):
         #Updates status to "idle"
@@ -43,8 +42,6 @@ class ProgressBarCounter():
 
         self.interface_frame.show_saved_fname(fname)
         
-
-
 
 
     def integrate(self, int_time):

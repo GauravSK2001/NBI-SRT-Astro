@@ -89,8 +89,8 @@ class IntegrationFrame(tk.Frame):
         #Take input integration time and integrate.
 
         #Set file name to datetime string if no file name is given
-        if self.savefilename_var.get() == "":
-            self.savefilename_var.set(time.strftime("%d-%m-%Y_%H-%M-%S", time.gmtime()))
+        if self.savefilename_var.get() == "" or self.savefilename_var.get().startswith("nbi_"):
+            self.savefilename_var.set(time.strftime("nbi_%d-%m-%Y_%H-%M-%S", time.gmtime()))
 
         #Reset file name message
         self.saved_fname_var.set("")

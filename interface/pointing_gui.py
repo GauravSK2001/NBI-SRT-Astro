@@ -271,6 +271,7 @@ class PointingFrame(tk.Frame):
                 tracking_thread = Thread(target=self.rotor.track_target, args=[l, b], daemon=True)
                 tracking_thread.start()
 
+
             else: 
                 self.enable_pointing_buttons(buttons=None)
 
