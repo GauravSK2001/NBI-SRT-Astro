@@ -169,7 +169,6 @@ class PointingFrame(tk.Frame):
                 if not self.check_valid_el(round(el)):
                     return None
                 
-                self.set_pointing_message(message)
 
                 self.disable_pointing_buttons(buttons=None)
 
@@ -210,8 +209,6 @@ class PointingFrame(tk.Frame):
                 #Check valid elevation
                 if not self.check_valid_el(round(el)):
                         return None
-                
-                self.set_pointing_message(message)
 
                 self.disable_pointing_buttons(buttons=None)
 
@@ -258,12 +255,6 @@ class PointingFrame(tk.Frame):
             if not self.check_valid_el(round(el)):
                 return None
                 
-            
-
-            message = f"Tracking l:{l}, b:{b}"
-            print(message)
-
-            self.set_pointing_message(message)
 
             self.disable_pointing_buttons(buttons=None)
 
@@ -294,15 +285,11 @@ class PointingFrame(tk.Frame):
         #If rotor control is present, slew to home position (az=0, el=0)
         if self.rotor.control is not None:
             try:
-                self.rotor.home()
 
-                message = "Homed"
-                self.set_pointing_message(message)
-                self.reset_inputs(True, False)
-
-                self.set_azel_entries(0, 0)
-
-                    
+                home_thread = Thread(target=self.rotor.home(), daemon=True)
+                home_thread.start()
+                
+                   
             except Exception as e:
                 print(f"Interface: Error in az/el slew: {e}")
 
@@ -324,10 +311,8 @@ class PointingFrame(tk.Frame):
         #If rotor is present, slew to stowed position
         if self.rotor.control is not None:
             try:
-                self.rotor.stow()
-                message = "Stowed"
-                self.set_pointing_message(message)
-                self.reset_inputs(True, True)
+                stow_thread = Thread(target=self.rotor.stow(), daemon=True)
+                stow_thread.start()
 
                     
             except Exception as e:
@@ -351,8 +336,8 @@ class PointingFrame(tk.Frame):
             stopped_az, stopped_el = self.rotor.stop()
             print("Interface: issued stop command to rotor")
 
-            message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
-            self.set_pointing_message(message, is_error=True)
+            #message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
+            #self.set_pointing_message(message, is_error=True)
         else:
             print("Interface: Stop button pressed, rotor is not moving. Ignoring button press.")
     

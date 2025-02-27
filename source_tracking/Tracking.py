@@ -38,8 +38,9 @@ class SourceTracking:
         # Hardware control interface
         self.control = control
 
-        #Software GUI - set to None initially, but added if GUI is used.
-        self.interface_frame = None
+        #Software GUI frames - set to None initially, but added if GUI is used.
+        self.gui_control_frame = None
+        self.gui_tracking_display_frame = None
 
         # Single state attribute – only one state is active at any time.
         self.state = "idle"
@@ -50,35 +51,47 @@ class SourceTracking:
 
     #GUI update methods - If no GUI is present, the method does nothing.
 
-    def set_interface_frame(self, interface_frame):
-        #Take interface frame
-        self.interface_frame = interface_frame
-        print("Detector: Added interface")
+    def set_gui_control_frame(self, gui_control_frame):
+        #Take interface pointing control frame
+        self.gui_control_frame = gui_control_frame
+        print("Rotor: Added interface pointing controls")
+
+    def set_gui_display_frame(self, gui_display_frame):
+        #Take interface pointing display frame
+        self.gui_tracking_display_frame = gui_display_frame
+        print("Rotor: Added interface pointing display")
 
     def update_gui_message(self, message, is_error=False):
         #Update GUI status label, if GUI is present
 
-        if self.interface_frame is not None:
+        if self.gui_control_frame is not None:
             print("Rotor: Updating pointing message to: ", message)
-            self.interface_frame.set_pointing_message(message, is_error)
+            self.gui_control_frame.set_pointing_message(message, is_error)
 
     def update_gui_azel_coordinates(self, az, el):
         #Update GUI azimuth and elevation entries during tracking, if GUI is present
 
-        if self.interface_frame is not None:
+        if self.gui_control_frame is not None:
             print(f"Rotor: Updating GUI azel to az {az}, el {el}")
-            self.interface_frame.set_azel_entries(az, el)
+            self.gui_control_frame.set_azel_entries(az, el)
 
     def enable_gui_buttons(self):
         #Re-enable GUI buttons after slew completes or tracking is stopped, if GUI is present
 
-        if self.interface_frame is not None:
-            if self.interface_frame.selector_state:
+        if self.gui_control_frame is not None:
+            if self.gui_control_frame.selector_state:
                 buttons = None
             else:
                 buttons = [0, 2, 3, 4, 5]
 
-            self.interface_frame.enable_buttons(buttons)
+            self.gui_control_frame.enable_pointing_buttons(buttons)
+
+    def reset_gui_inputs(self, reset_lb, reset_azel, home):
+
+        self.gui_control_frame.reset_inputs(reset_lb, reset_azel)
+        if home:
+            self.gui_control_frame.set_azel_entries(0, 0)
+
 
 
     def update_gui_pointing_plot(self, az, el):
@@ -369,10 +382,15 @@ class SourceTracking:
         """
         Return the telescope to the home position (Az=0°, El=0°).
         """
+        self.stop()
+
+        self.update_gui_message(f"Homing to Az: 0, El: 0")
+
         self.slew(0, 0, override=True)
         self.set_state("home")
 
         self.update_gui_message(f"Homed")
+        self.reset_gui_inputs(True, False, True)
 
     def stow(self):
         """
@@ -382,6 +400,7 @@ class SourceTracking:
         self.set_state("stowed")
 
         self.update_gui_message(f"Stowed")
+        self.reset_gui_inputs(True, True, False)
 
     def stop(self):
         """
@@ -397,6 +416,8 @@ class SourceTracking:
             self.set_state("idle")
 
             self.update_gui_message(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.", is_error=True)
+
+            self.enable_gui_buttons()
             
 
 
