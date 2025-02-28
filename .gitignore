@@ -4,3 +4,5 @@ source_tracking/__pycache__
 digital_signal_processing/
 source_tracking/exceptions
 source_tracking/Tracking_v2.py
+**.__pycache__
+**.pyc
