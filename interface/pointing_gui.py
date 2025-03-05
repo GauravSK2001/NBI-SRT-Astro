@@ -23,6 +23,10 @@ class PointingFrame(tk.Frame):
 
         #Initialize tracking
         self.rotor = rotor
+        if rotor.control:
+            rotor_az, rotor_el = self.rotor.control.status()
+        else:
+            rotor_az, rotor_el = (0, -15)
 
 
         #Create variables for messages and taking coordinate/integration time input
@@ -31,8 +35,8 @@ class PointingFrame(tk.Frame):
         self.l_var = tk.StringVar()
         self.b_var = tk.StringVar()
 
-        self.az_var = tk.StringVar(value=0)
-        self.el_var = tk.StringVar(value=0)
+        self.az_var = tk.StringVar(value=round(rotor_az))
+        self.el_var = tk.StringVar(value=round(rotor_el))
 
         self.selector_state = tk.BooleanVar(value=False) #False if azel, True if l,b
 
@@ -70,7 +74,7 @@ class PointingFrame(tk.Frame):
         self.rotor_reset_button = tk.Button(self, text="Reset Rotor", command=self.reset_rotor, width=11)
         
         self.gal_selector = tk.Radiobutton(self, text="l, b", value=True, variable=self.selector_state, command=self.select_coords)
-        self.azel_selector = tk.Radiobutton(self, text="Az,El", value=False, variable=self.selector_state, command=self.select_coords)
+        self.azel_selector = tk.Radiobutton(self, text="Az, El", value=False, variable=self.selector_state, command=self.select_coords)
 
 
 
@@ -283,15 +287,20 @@ class PointingFrame(tk.Frame):
         self.set_pointing_message(message)
 
         #If rotor control is present, slew to home position (az=0, el=0)
+        self.disable_pointing_buttons(buttons=None)
+
+        
         if self.rotor.control is not None:
             try:
-
-                home_thread = Thread(target=self.rotor.home(), daemon=True)
-                home_thread.start()
+                slew_thread = Thread(target=self.rotor.slew, args=[0, 0, True, True, False], daemon=True)
+                slew_thread.start()
+                print("Interface: Issued slew command to rotor")
+                    
+            except Exception as e:
+                print(f"Interface: Slewing error {e}")
                 
                    
-            except Exception as e:
-                print(f"Interface: Error in az/el slew: {e}")
+            
 
             
         else: 
@@ -311,12 +320,12 @@ class PointingFrame(tk.Frame):
         #If rotor is present, slew to stowed position
         if self.rotor.control is not None:
             try:
-                stow_thread = Thread(target=self.rotor.stow(), daemon=True)
-                stow_thread.start()
-
+                slew_thread = Thread(target=self.rotor.slew, args=[0, -15, True, False, True], daemon=True)
+                slew_thread.start()
+                print("Interface: Issued slew command to rotor")
                     
             except Exception as e:
-                print(f"Interface: Error in az/el slew: {e}")
+                print(f"Interface: Slewing error {e}")
 
            
         else: 
@@ -374,9 +383,20 @@ class PointingFrame(tk.Frame):
 
     def set_azel_entries(self, az, el):
         #Change text in az, el entries
+        if self.az_field.cget("state") == "disabled":
+            self.az_field.config(state="normal")
+            self.az_var.set(round(az))
+            self.az_field.config(state="disabled")
+        else: 
+            self.az_var.set(round(az))
 
-        self.az_var.set(round(az))
-        self.el_var.set(round(el))
+        if self.el_field.cget("state") == "disabled":
+            self.el_field.config(state="normal")
+            self.el_var.set(round(az))
+            self.el_field.config(state="disabled")
+        else:
+            self.el_var.set(round(el))
+
         self.update()
 
 

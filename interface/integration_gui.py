@@ -10,11 +10,12 @@ from threading import *
 class IntegrationFrame(tk.Frame):
     #Frame containing controls for detector integration
 
-    def __init__(self, master, detector, bd, width, height):
+    def __init__(self, master, rotor, detector, bd, width, height):
         super().__init__(master, bd=bd, width=width, height=height)
         self.grid()
 
-        #Initialize detector (waveguide)
+        #Initialize rotor and detector control objects
+        self.rotor = rotor
         self.detector = detector
 
         #Variables for spectrum save file name
@@ -49,8 +50,7 @@ class IntegrationFrame(tk.Frame):
 
         self.int_time_entry = tk.Entry(self, textvariable=self.int_time_var)
 
-        self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate)
-
+        self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate, state="disabled")
 
         self.stop_int_button = tk.Button(self, text="Stop integration", width=13, command=self.stop_integration)
 
@@ -166,6 +166,14 @@ class IntegrationFrame(tk.Frame):
         print(f"Interface: Saved to: {fname}.fits")
         self.saved_fname_var.set(f"Saved to: {fname}.fits")
         self.update()
+
+    def config_button(self, state):
+        #Enable or disable Integrate button
+
+        if state:
+            self.integrate_button.config(state="active")
+        else:
+            self.integrate_button.config(state="disabled")
 
         
 

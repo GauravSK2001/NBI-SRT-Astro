@@ -24,7 +24,7 @@ class Interface(tk.Frame):
         rotor.set_gui_control_frame(self.pointing_controls)
 
         #Create integration control frame
-        self.integration_controls = IntegrationFrame(self, detector=detector, bd=0, width=500, height=125)
+        self.integration_controls = IntegrationFrame(self, rotor=rotor, detector=detector, bd=0, width=500, height=125)
         detector.set_interface_frame(self.integration_controls)
 
         #Create calibration control frame

@@ -111,12 +111,9 @@ class TrackingMap(tk.Frame):
 
         if self.rotor.control is not None:
             #print("Interface: found rotor control")
-            rotor_azel = self.rotor.current_telescope_azel
+            rotor_az, rotor_el = self.rotor.control.status()
 
-            rotor_az = rotor_azel.az.deg
-            rotor_el = rotor_azel.alt.deg
-
-            print(f"Interface: Pointing display: Az:{rotor_az}, El:{rotor_el}")
+            #print(f"Interface: Pointing display: Az:{rotor_az}, El:{rotor_el}")
 
             self.axes.plot((rotor_az* u.degree).to(u.radian).value, rotor_el, "r+", label="Telescope")
         else:
