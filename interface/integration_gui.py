@@ -17,8 +17,10 @@ class IntegrationFrame(tk.Frame):
         #Initialize detector (waveguide)
         self.detector = detector
 
-        #Variable for spectrum save file name
+        #Variables for spectrum save file name
         self.savefilename_var = tk.StringVar()
+
+        self.saved_fname_var = tk.StringVar()
         
         #Variables for messages and integration time input
         self.int_time_var = tk.StringVar()
@@ -30,6 +32,8 @@ class IntegrationFrame(tk.Frame):
         #Create labels for integration controls
 
         self.savefilename_label = tk.Label(self, text="File Name:")
+
+        self.file_saved_label = tk.Label(self, textvariable=self.saved_fname_var)
 
         self.int_control_label = tk.Label(self, text="Integration Controls", justify="center")
 
@@ -47,7 +51,6 @@ class IntegrationFrame(tk.Frame):
 
         self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate)
 
-        self.onesec_int_button = tk.Button(self, text="1 second integration", command=lambda: self.integrate(1))
 
         self.stop_int_button = tk.Button(self, text="Stop integration", width=13, command=self.stop_integration)
 
@@ -59,9 +62,11 @@ class IntegrationFrame(tk.Frame):
 
         self.int_control_label.grid(column=0, row=0, columnspan=8, pady=2)
 
-        self.savefilename_label.grid(column=2, row=1, pady=2, sticky="w")
+        self.savefilename_label.grid(column=0, row=1, pady=2, sticky="w")
 
-        self.savefilename_entry.grid(column=3, row=1, columnspan=2, pady=2, sticky="w")
+        self.savefilename_entry.grid(column=1, row=1, columnspan=2, pady=2, sticky="w")
+
+        self.file_saved_label.grid(column=4, row=1, columnspan=3, pady=2, sticky="w")
 
         self.int_time_label.grid(column=0, row=2, pady=2, sticky="w")
 
@@ -69,7 +74,6 @@ class IntegrationFrame(tk.Frame):
 
         self.integrate_button.grid(column=4, row=2, padx=4, pady=2, sticky="w")
 
-        self.onesec_int_button.grid(column=5, row=2, padx=4, pady=2, sticky="w")
 
         self.stop_int_button.grid(column=6, row=2, padx=4, pady=2, sticky="w")
 
@@ -82,6 +86,14 @@ class IntegrationFrame(tk.Frame):
     def integrate(self, t=None):
         #Take input integration time and integrate.
 
+        #Set file name to datetime string if no file name is given
+        if self.savefilename_var.get() == "" or self.savefilename_var.get().startswith("nbi_"):
+            self.savefilename_var.set(time.strftime("nbi_%d-%m-%Y_%H-%M-%S", time.gmtime()))
+
+        #Reset file name message
+        self.saved_fname_var.set("")
+
+        #Take integration time input if not given already
         if t is None: 
             try:
                 t = int(self.int_time_var.get())
@@ -111,7 +123,6 @@ class IntegrationFrame(tk.Frame):
             message = "Complete"
             self.set_int_message(message)
 
-            self.detector.save_spectrum(self.savefilename_var.get())
 
         else:
             #detector.integrate(t)
@@ -119,7 +130,6 @@ class IntegrationFrame(tk.Frame):
 
             integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t])
             integrate_thread.start()
-
 
 
 
@@ -149,6 +159,12 @@ class IntegrationFrame(tk.Frame):
             self.int_message_label.config(fg="black")
         
         self.int_message_var.set(message)
+        self.update()
+
+    def show_saved_fname(self, fname):
+        #Show new save file name
+        print(f"Interface: Saved to: {fname}.fits")
+        self.saved_fname_var.set(f"Saved to: {fname}.fits")
         self.update()
 
         
