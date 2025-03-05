@@ -4,7 +4,7 @@ import sys
 
 import time
 
-from exceptions.stop_exception import StopTelescopeException
+from threading import *
 
 
 import numpy as np
@@ -23,6 +23,10 @@ class PointingFrame(tk.Frame):
 
         #Initialize tracking
         self.rotor = rotor
+        if rotor.control:
+            rotor_az, rotor_el = self.rotor.control.status()
+        else:
+            rotor_az, rotor_el = (0, -15)
 
 
         #Create variables for messages and taking coordinate/integration time input
@@ -31,10 +35,10 @@ class PointingFrame(tk.Frame):
         self.l_var = tk.StringVar()
         self.b_var = tk.StringVar()
 
-        self.az_var = tk.StringVar(value=0)
-        self.el_var = tk.StringVar(value=0)
+        self.az_var = tk.StringVar(value=round(rotor_az))
+        self.el_var = tk.StringVar(value=round(rotor_el))
 
-        self.selector_state = tk.BooleanVar(value=False)
+        self.selector_state = tk.BooleanVar(value=False) #False if azel, True if l,b
 
         self.int_time_var = tk.StringVar()
 
@@ -70,7 +74,7 @@ class PointingFrame(tk.Frame):
         self.rotor_reset_button = tk.Button(self, text="Reset Rotor", command=self.reset_rotor, width=11)
         
         self.gal_selector = tk.Radiobutton(self, text="l, b", value=True, variable=self.selector_state, command=self.select_coords)
-        self.azel_selector = tk.Radiobutton(self, text="Az/El", value=False, variable=self.selector_state, command=self.select_coords)
+        self.azel_selector = tk.Radiobutton(self, text="Az, El", value=False, variable=self.selector_state, command=self.select_coords)
 
 
 
@@ -169,31 +173,28 @@ class PointingFrame(tk.Frame):
                 if not self.check_valid_el(round(el)):
                     return None
                 
-                self.set_pointing_message(message)
 
                 self.disable_pointing_buttons(buttons=None)
 
                 #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
                 if self.rotor.control is not None:
                     try:
-                        self.rotor.slew(az, el, override=False)
+                        
+                        slew_thread = Thread(target=self.rotor.slew, args=[az, el, False], daemon=True)
+                        slew_thread.start()
                         print("Interface: Issued slew command to rotor")
-
-                    except StopTelescopeException:
-                        stopped_az, stopped_el = self.rotor.stop()
-                        print("Interface: issued stop command to rotor")
-
-                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
-                        self.set_pointing_message(message, is_error=True)
+                     
                 
                     except Exception as e:
                         message = f"Slewing error {e}"
                         self.set_pointing_message(message, is_error=True)
 
-                self.enable_pointing_buttons(buttons=None)
+                else: 
 
-                message = "Holding"
-                self.set_pointing_message(message)
+                    self.enable_pointing_buttons(buttons=None)
+
+                    message = "Holding"
+                    self.set_pointing_message(message)
                          
 
             except ValueError:
@@ -212,32 +213,26 @@ class PointingFrame(tk.Frame):
                 #Check valid elevation
                 if not self.check_valid_el(round(el)):
                         return None
-                
-                self.set_pointing_message(message)
 
                 self.disable_pointing_buttons(buttons=None)
 
                 #If rotor control is present, try and slew to l, b, otherwise wait 10 seconds
                 if self.rotor.control is not None:
                     try:
-                        self.rotor.slew(az, el, override=False)
+                        slew_thread = Thread(target=self.rotor.slew, args=[az, el, False], daemon=True)
+                        slew_thread.start()
                         print("Interface: Issued slew command to rotor")
                     
-                    except StopTelescopeException:
-                        stopped_az, stopped_el = self.rotor.stop()
-                        print("Interface: issued stop command to rotor")
-
-                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
-                        self.set_pointing_message(message, is_error=True)
-
                     except Exception as e:
                         print(f"Interface: Slewing error {e}")
 
-                self.enable_pointing_buttons(buttons=[0, 2, 3, 4, 5])
+                else: 
+
+                    self.enable_pointing_buttons(buttons=[0, 2, 3, 4, 5])
 
                 
-                message = "Holding"
-                self.set_pointing_message(message)
+                    message = "Holding"
+                    self.set_pointing_message(message)
 
 
             except ValueError:
@@ -252,37 +247,29 @@ class PointingFrame(tk.Frame):
             l = round(float(self.l_var.get()))
             b = round(float(self.b_var.get()))
 
-            now, az, el = self.rotor.tracking_galactic_coordinates( L=l, B=b)
+            now, az, el = self.rotor.tracking_galactic_coordinates(L=l, B=b)
 
 
             print("Az: ", az, ", El: ", el)
 
-            self.az_var.set(round(az))
-            self.el_var.set(round(el))
+        
+            self.set_azel_entries(az, el)
 
             #Check valid elevation
             if not self.check_valid_el(round(el)):
                 return None
                 
-            
-
-            message = f"Tracking l:{l}, b:{b}"
-            print(message)
-
-            self.set_pointing_message(message)
 
             self.disable_pointing_buttons(buttons=None)
 
-            self.rotor.track_target(L=l, B=b, )
+            if self.rotor.control is not None:
+                tracking_thread = Thread(target=self.rotor.track_target, args=[l, b], daemon=True)
+                tracking_thread.start()
 
-            self.enable_pointing_buttons(buttons=None)
 
-        except StopTelescopeException:
-                        stopped_az, stopped_el = self.rotor.stop()
-                        print("Interface: issued stop command to rotor")
+            else: 
+                self.enable_pointing_buttons(buttons=None)
 
-                        message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
-                        self.set_pointing_message(message, is_error=True)
 
         except ValueError:
             message = "Invalid numeric values for l, b."
@@ -300,20 +287,20 @@ class PointingFrame(tk.Frame):
         self.set_pointing_message(message)
 
         #If rotor control is present, slew to home position (az=0, el=0)
+        self.disable_pointing_buttons(buttons=None)
+
+        
         if self.rotor.control is not None:
             try:
-                self.rotor.home()
-
-                message = "Homed"
-                self.set_pointing_message(message)
-                self.reset_inputs(True, False)
-
-                self.az_var.set(0)
-                self.el_var.set(0)
-
+                slew_thread = Thread(target=self.rotor.slew, args=[0, 0, True, True, False], daemon=True)
+                slew_thread.start()
+                print("Interface: Issued slew command to rotor")
                     
             except Exception as e:
-                print(f"Interface: Error in az/el slew: {e}")
+                print(f"Interface: Slewing error {e}")
+                
+                   
+            
 
             
         else: 
@@ -333,14 +320,12 @@ class PointingFrame(tk.Frame):
         #If rotor is present, slew to stowed position
         if self.rotor.control is not None:
             try:
-                self.rotor.stow()
-                message = "Stowed"
-                self.set_pointing_message(message)
-                self.reset_inputs(True, True)
-
+                slew_thread = Thread(target=self.rotor.slew, args=[0, -15, True, False, True], daemon=True)
+                slew_thread.start()
+                print("Interface: Issued slew command to rotor")
                     
             except Exception as e:
-                print(f"Interface: Error in az/el slew: {e}")
+                print(f"Interface: Slewing error {e}")
 
            
         else: 
@@ -357,9 +342,13 @@ class PointingFrame(tk.Frame):
             message = "Stopping telescope"
             self.set_pointing_message(message, is_error=True)
 
-            raise StopTelescopeException
+            stopped_az, stopped_el = self.rotor.stop()
+            print("Interface: issued stop command to rotor")
+
+            #message = f"Telescope Stopped at  Az:{stopped_az} El:{stopped_el}"
+            #self.set_pointing_message(message, is_error=True)
         else:
-            print("Interface: Stop button pressed, rotor is not moving. Ignoring key press.")
+            print("Interface: Stop button pressed, rotor is not moving. Ignoring button press.")
     
 
     def reset_rotor(self):
@@ -391,6 +380,25 @@ class PointingFrame(tk.Frame):
         
         self.pointing_message_var.set(message)
         self.update()
+
+    def set_azel_entries(self, az, el):
+        #Change text in az, el entries
+        if self.az_field.cget("state") == "disabled":
+            self.az_field.config(state="normal")
+            self.az_var.set(round(az))
+            self.az_field.config(state="disabled")
+        else: 
+            self.az_var.set(round(az))
+
+        if self.el_field.cget("state") == "disabled":
+            self.el_field.config(state="normal")
+            self.el_var.set(round(az))
+            self.el_field.config(state="disabled")
+        else:
+            self.el_var.set(round(el))
+
+        self.update()
+
 
     def reset_inputs(self, reset_lb=False, reset_azel=False):
         #Resets indicated input fields to empty strings

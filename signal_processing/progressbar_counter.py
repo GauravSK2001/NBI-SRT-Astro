@@ -29,7 +29,6 @@ class ProgressBarCounter():
         
         self.status = "active"
 
-        
 
     def stop(self):
         #Updates status to "idle"
@@ -41,7 +40,8 @@ class ProgressBarCounter():
     def save_spectrum(self, fname):
         print("Detector: Simulating saving spectrum to ", fname)
 
-
+        self.interface_frame.show_saved_fname(fname)
+        
 
 
     def integrate(self, int_time):
@@ -63,8 +63,11 @@ class ProgressBarCounter():
                 self.status = "idle"
                 self.interface_frame.update_progressbar(self.maximum, self.value)
                 self.interface_frame.set_int_message("Integration Complete")
+                self.save_spectrum(self.interface_frame.savefilename_var.get())
 
             time.sleep(1)
             self.value += 1
+
+        
 
 
