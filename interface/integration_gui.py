@@ -51,7 +51,6 @@ class IntegrationFrame(tk.Frame):
 
         self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate)
 
-        self.onesec_int_button = tk.Button(self, text="1 second integration", command=lambda: self.integrate(1))
 
         self.stop_int_button = tk.Button(self, text="Stop integration", width=13, command=self.stop_integration)
 
@@ -75,7 +74,6 @@ class IntegrationFrame(tk.Frame):
 
         self.integrate_button.grid(column=4, row=2, padx=4, pady=2, sticky="w")
 
-        self.onesec_int_button.grid(column=5, row=2, padx=4, pady=2, sticky="w")
 
         self.stop_int_button.grid(column=6, row=2, padx=4, pady=2, sticky="w")
 

@@ -11,12 +11,14 @@ import numpy as np
 
 
 import time
+from astropy.time import Time
 
 from threading import Thread
 
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord, AltAz, Longitude
 from astropy import units as u
+from astropy.time import Time
 
 class TrackingMap(tk.Frame):
     #Frame containing controls for detector integration
@@ -68,27 +70,37 @@ class TrackingMap(tk.Frame):
 
         self.canvas.get_tk_widget().grid(column=0, row=1, columnspan=2, pady=2, padx=4, sticky="nw")
 
-        #Begin update cycle
-        self.update_thread = Thread(target=self.update_display, daemon=True)
-        self.update_thread.start()
+        #Begin update cycles
+        self.clock_thread = Thread(target=self.update_clock_display, daemon=True)
+        self.clock_thread.start()
+
+        self.pointing_disp_thread = Thread(target=self.update_pointing_display, daemon=True)
+        self.pointing_disp_thread.start()
 
 
-    def update_display(self):
-        #Update the display every second, including clock and pointing plot
+    def update_clock_display(self):
+        #Update the clock every second, including clock and pointing plot
 
         self.update_clock_label()
 
+        time.sleep(0.5) #Including some allowance for update times
+        self.update_clock_display()
+
+
+    def update_pointing_display(self):
+        #Update the pointing plot every 0.5 seconds
+
+
         self.update_pointing_plot()
 
-        self.update()
-
         time.sleep(0.5)
-        self.update_display()
+        self.update_pointing_display()
 
     def update_clock_label(self):
         #Update the clock variable with the current UTC time
 
         self.timevar.set(time.strftime(self.time_format_string, time.gmtime()))
+        self.clock_label.update()
         
 
     def update_pointing_plot(self):
@@ -104,44 +116,42 @@ class TrackingMap(tk.Frame):
             rotor_az = rotor_azel.az.deg
             rotor_el = rotor_azel.alt.deg
 
-            self.axes.plot(rotor_az, rotor_el, "r+", label="Telescope")
+            print(f"Interface: Pointing display: Az:{rotor_az}, El:{rotor_el}")
+
+            self.axes.plot((rotor_az* u.degree).to(u.radian).value, rotor_el, "r+", label="Telescope")
         else:
             self.axes.plot(0, -15, "r+", label="Telescope")
 
         
-        #GALACTIC_PLANE_LONGITUDES = np.arange(0, 361, 1)
+        GALACTIC_PLANE_LONGITUDES = np.arange(0, 361, 1)
 
-        #galactic_azs = []
-        #galactic_els = []
+        galactic_azs = []
+        galactic_els = []
         
-        #for l in GALACTIC_PLANE_LONGITUDES:
-           # __, az, el = self.rotor.tracking_galactic_coordinates(L=l, B=0)
+        __, az, el = self.rotor.tracking_galactic_coordinates(L=GALACTIC_PLANE_LONGITUDES, B=0)
+    
 
-            #galactic_azs.append(az)
-            #galactic_els.append(el)
+        galactic_azs = (np.array(az) * u.degree).to(u.radian).value
+        galactic_els = np.array(el)
 
-        #galactic_azs = np.array(galactic_azs)
-        #galactic_els = np.array(galactic_els)
+        visible_galactic_plane_azs = galactic_azs[np.where(galactic_els >=0)]
+        visible_galactic_plane_els = galactic_els[np.where(galactic_els >=0)]
+    
 
-
-        #visible_galactic_plane_azs = np.array(galactic_azs[np.where(galactic_els >= 0)])
-        #visible_galactic_plane_els = np.array(galactic_els[np.where(galactic_els >= 0)])
-
-        #print(visible_galactic_plane_azs)
-        #print(visible_galactic_plane_els)
-
-
-        #self.axes.plot(visible_galactic_plane_azs, visible_galactic_plane_els, "b-", label="Galactic plane")
+        self.axes.plot(visible_galactic_plane_azs, visible_galactic_plane_els, "b-", label="Galactic plane:")
 
         self.fig.legend(loc="outside lower left")
 
         self.canvas.draw()
+
 
     def clear_plotted_objects(self):
         #Remove all objects from self.axes
 
         for artist in self.axes.ArtistList(self.axes, prop_name="issue"):
             artist.remove()
+
+    
 
         
 
