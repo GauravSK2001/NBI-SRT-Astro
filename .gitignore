@@ -9,4 +9,4 @@ interface/__pycache__
 **.pyc
 source_tracking/__pycache__
 signal_processing/__pycache__
-signal_processing/Opening_binany_test.py
+signal_processing/Opening_binary_test.py

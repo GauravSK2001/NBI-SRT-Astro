@@ -20,8 +20,8 @@ f = f[0:Vector_length]
 
 def plot(f,freq,title):
     fig,ax=plt.subplots(figsize=(10,5))
-    ax.axvline(x=0/1e6, color='r', linestyle='--', label='test HI 21cm line')
-    ax.step(freq,10**f,where='mid',label='Frequency Spectrum')
+    ax.axvline(x=0/1e6, color='r', linestyle='--', label='HI 21cm line')
+    ax.step(freq,10**f,where='mid',label='Measured PSD')
     ax.set_xlabel(r"Frequency ($\Delta \nu$) [MHz]")
     ax.set_ylabel(r"Temperature ($T$) [K]")
     ax.set_title(title)
@@ -83,7 +83,7 @@ def Tcal(Power,Continuum_Hot,Continuum_Cold):
 
 calibration = Tcal(10**Measure,10**Hot,10**Cold)
 print(calibration)
-plot(numpy.log10(calibration),Cut_freq,'Calibration')
+plot(numpy.log10(calibration),Cut_freq,'Calibrated PSD')
 plt.show()
 
 
