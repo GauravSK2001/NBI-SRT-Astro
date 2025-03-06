@@ -2,8 +2,8 @@ import numpy
 import matplotlib.pyplot as plt
 # f = numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/processed_frequency_spectrum"), dtype=numpy.float32)
 # f = numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/cold/processed_frequency_spectrum"), dtype=numpy.float32)
-cold=numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/cold_1"), dtype=numpy.float32)
-hot=numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/hot_1"), dtype=numpy.float32)
+cold=numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/06_03/cold"), dtype=numpy.float32)
+hot=numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/06_03/hot"), dtype=numpy.float32)
 measure=numpy.fromfile(open("/Users/gauravsenthilkumar/Desktop/Radio_tests/m1"), dtype=numpy.float32)
 f=cold
 Vector_length = int(2**13)
@@ -38,15 +38,15 @@ def plot(f,freq,title):
 
 # plt.show()
 
-shape_normalization = 10**hot/numpy.sum(10**hot)
+# shape_normalization = 10**hot/numpy.sum(10**hot)
 
 
 Th=285
 Tc=7
 
-hot_shape_norm = 10**hot / shape_normalization
-cold_shape_norm = 10**cold / shape_normalization
-measure_shape_norm = 10**measure / shape_normalization
+# hot_shape_norm = 10**hot / shape_normalization
+# cold_shape_norm = 10**cold / shape_normalization
+# measure_shape_norm = 10**measure / shape_normalization
 
 cut_off = 1000
 
@@ -67,8 +67,8 @@ m = numpy.log10(m)
 
 plot(Hot,Cut_freq,'Hot')
 plot(Cold,Cut_freq,'Cold')
-plot(shape_normalization,Cut_freq,'Shape Normalization')
-plot(Measure/shape_normalization,Cut_freq,'Measure')
+# plot(shape_normalization,Cut_freq,'Shape Normalization')
+# plot(Measure/shape_normalization,Cut_freq,'Measure')
 
 
 

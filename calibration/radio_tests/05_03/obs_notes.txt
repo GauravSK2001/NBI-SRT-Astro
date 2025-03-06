@@ -1,0 +1,4 @@
+L,B=140 0
+
+Partially cloudy. 4 pm
+300 sec integration
