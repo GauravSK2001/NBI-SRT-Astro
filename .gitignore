@@ -11,3 +11,4 @@ source_tracking/__pycache__
 signal_processing/__pycache__
 signal_processing/Opening_binary_test.py
 calibration/my_test_notebook.ipynb
+calibration/calibration_test_notebook.ipynb
