@@ -46,7 +46,8 @@ class Calibration:
         self.Cold_temperature= 0
         self.slope= 0
         self.intercept= 0
-        self.Tsys= 0
+        self.T_sys= 0
+        self.T_cal = 0
     def cold_temperature(self,elevation_angle):
         
         T_cold= self.atmospheric.atmospheric_emission(elevation_angle) + self.CMB_temperature
@@ -67,6 +68,7 @@ class Calibration:
         
         Y= self.Y_factor(Continuum_Hot,Continuum_Cold)
         Tsys= (self.Hot_temperature-Y*self.Cold_temperature)/(Y-1)
+        self.T_sys= Tsys
         return Tsys
     
     def Tcal(self,Power,Continuum_Hot,Continuum_Cold):
@@ -75,9 +77,16 @@ class Calibration:
         b= (-1*(Continuum_Hot/(Continuum_Hot-Continuum_Cold))*(self.Hot_temperature-self.Cold_temperature))+self.Hot_temperature
         
         Tcal= m*Power + b
+        self.T_cal= Tcal
         return Tcal
     
-
+    def initialize(self,Continuum_Hot,Continuum_Cold,power,elavation,Calibration_surface_temperature):
+        t_h=self.hot_temperature(Calibration_surface_temperature)
+        t_c=self.cold_temperature(elavation)
+        y_factor=self.Y_factor(Continuum_Hot,Continuum_Cold)
+        system_temp=self.Tsys(Continuum_Hot,Continuum_Cold)
+        Calibrated_curve=self.Tcal(power,Continuum_Hot,Continuum_Cold)
+        return Calibrated_curve
     
     def Plotter(self):
         '''
