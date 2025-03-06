@@ -13,15 +13,15 @@ class Atmospheric_effects:
     
     def __init__(self,air_temperature):
         self.optical_depth=0.005 #optical depth of the atmosphere standard value
-        self.air_temperature= air_temperature #temperature of the air in kelvin
+        self.air_temperature= air_temperature *u.K #temperature of the air in kelvin
         
     def slant_path_optical_depth(self,elevation_angle):
-        theta= np.pi/2 -np.deg2rad(elevation_angle)
+        theta= np.pi/2 - np.deg2rad(elevation_angle).value
         tau= self.optical_depth/np.cos(theta)
         return tau
     
     def atmospheric_emission(self,elevation_angle):
-        tau= self.slant_path_optical_depth(elevation_angle)
+        tau= self.slant_path_optical_depth(elevation_angle*u.deg)
         T= self.air_temperature*(1-np.exp(-tau))
         return T
     
@@ -38,8 +38,8 @@ class Calibration:
     '''
     
     def __init__(self,calibration_integration_time,air_temperature):
-        self.calibration_integration_time= calibration_integration_time
-        self.air_temperature= air_temperature #temperature of the air in kelvin
+        self.calibration_integration_time= calibration_integration_time *u.s
+        self.air_temperature= air_temperature *u.K #temperature of the air in kelvin
         self.atmospheric= Atmospheric_effects(air_temperature)
         self.CMB_temperature= planck18.Tcmb0.to(u.K)
         self.Hot_temperature= 0
@@ -55,7 +55,7 @@ class Calibration:
     
     def hot_temperature(self,Calibration_surface_temperature):
         
-        T_hot= Calibration_surface_temperature
+        T_hot= Calibration_surface_temperature *u.K
         self.Hot_temperature= T_hot
         
         return T_hot
