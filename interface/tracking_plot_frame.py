@@ -42,8 +42,8 @@ class TrackingMap(tk.Frame):
         self.pointing_disp_label = tk.Label(self, text="Pointing and Time Display")
 
         #Create labels for the current time display
-        self.time_disp_label = tk.Label(self, text="Current Time (UTC):")
-        self.clock_label = tk.Label(self, textvariable=self.timevar)
+        #self.time_disp_label = tk.Label(self, text="Current Time (UTC):")
+        #self.clock_label = tk.Label(self, textvariable=self.timevar)
 
         #Create Figure and canvas with polar projection
         self.fig = Figure(figsize=(5, 5), dpi=100)
@@ -65,14 +65,14 @@ class TrackingMap(tk.Frame):
 
         #Arrange elements
 
-        self.time_disp_label.grid(column=0, row=0, padx=4, pady=2, sticky="w")
-        self.clock_label.grid(column=1, row=0, padx=4, pady=2, sticky="w")
+        #self.time_disp_label.grid(column=0, row=0, padx=4, pady=2, sticky="w")
+        #self.clock_label.grid(column=1, row=0, padx=4, pady=2, sticky="w")
 
-        self.canvas.get_tk_widget().grid(column=0, row=1, columnspan=2, pady=2, padx=4, sticky="nw")
+        self.canvas.get_tk_widget().grid(column=0, row=0, columnspan=2, pady=2, padx=4, sticky="nw")
 
         #Begin update cycles
-        self.clock_thread = Thread(target=self.update_clock_display, daemon=True)
-        self.clock_thread.start()
+        #self.clock_thread = Thread(target=self.update_clock_display, daemon=True)
+        #self.clock_thread.start()
 
         self.pointing_disp_thread = Thread(target=self.update_pointing_display, daemon=True)
         self.pointing_disp_thread.start()
