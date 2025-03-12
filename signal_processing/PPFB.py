@@ -68,7 +68,7 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.sinc_sample_locations = sinc_sample_locations = np.arange(-np.pi*Taps/2.0, np.pi*Taps/2.0, np.pi/Vector_length)
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
         self.samp_rate = samp_rate = 6e6
-        self.one_sec_display_integration = one_sec_display_integration = 1
+        self.one_sec_display_integration = one_sec_display_integration = 10
         self.int_time = int_time = (60*5)
         self.Window = Window = sinc
         self.PFB_bandwidth_vector_length = PFB_bandwidth_vector_length = 7e3
@@ -87,17 +87,45 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.qtgui_tab_widget_layout_0.addLayout(self.qtgui_tab_widget_grid_layout_0)
         self.qtgui_tab_widget.addTab(self.qtgui_tab_widget_widget_0, 'Spectrum')
         self.top_layout.addWidget(self.qtgui_tab_widget)
-        self._int_time_tool_bar = Qt.QToolBar(self)
-        self._int_time_tool_bar.addWidget(Qt.QLabel("Integration Time " + ": "))
-        self._int_time_line_edit = Qt.QLineEdit(str(self.int_time))
-        self._int_time_tool_bar.addWidget(self._int_time_line_edit)
-        self._int_time_line_edit.editingFinished.connect(
-            lambda: self.set_int_time(int(str(self._int_time_line_edit.text()))))
-        self.qtgui_tab_widget_grid_layout_0.addWidget(self._int_time_tool_bar, 0, 0, 1, 2)
-        for r in range(0, 1):
-            self.qtgui_tab_widget_grid_layout_0.setRowStretch(r, 1)
-        for c in range(0, 2):
-            self.qtgui_tab_widget_grid_layout_0.setColumnStretch(c, 1)
+        self.qtgui_vector_sink_f_0_0_1 = qtgui.vector_sink_f(
+            Vector_length,
+            ((HI21-samp_rate/2)/1e6),
+            ((Frequency_Step_Size)/1e6),
+            "Frequency [MHz]",
+            "Power log",
+            "without pfb",
+            1, # Number of inputs
+            None # parent
+        )
+        self.qtgui_vector_sink_f_0_0_1.set_update_time(0.10)
+        self.qtgui_vector_sink_f_0_0_1.set_y_axis(0, 10)
+        self.qtgui_vector_sink_f_0_0_1.enable_autoscale(True)
+        self.qtgui_vector_sink_f_0_0_1.enable_grid(True)
+        self.qtgui_vector_sink_f_0_0_1.set_x_axis_units("MHz")
+        self.qtgui_vector_sink_f_0_0_1.set_y_axis_units("")
+        self.qtgui_vector_sink_f_0_0_1.set_ref_level(0)
+
+
+        labels = ['ztomag2', 'Multiply conjugate', 'just mag', '', '',
+            '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+            "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0, 1.0]
+
+        for i in range(1):
+            if len(labels[i]) == 0:
+                self.qtgui_vector_sink_f_0_0_1.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_vector_sink_f_0_0_1.set_line_label(i, labels[i])
+            self.qtgui_vector_sink_f_0_0_1.set_line_width(i, widths[i])
+            self.qtgui_vector_sink_f_0_0_1.set_line_color(i, colors[i])
+            self.qtgui_vector_sink_f_0_0_1.set_line_alpha(i, alphas[i])
+
+        self._qtgui_vector_sink_f_0_0_1_win = sip.wrapinstance(self.qtgui_vector_sink_f_0_0_1.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_vector_sink_f_0_0_1_win)
         self.qtgui_vector_sink_f_0_0_0 = qtgui.vector_sink_f(
             Vector_length,
             ((HI21-samp_rate/2)/1e6),
@@ -176,48 +204,6 @@ class PPFB(gr.top_block, Qt.QWidget):
 
         self._qtgui_vector_sink_f_0_0_win = sip.wrapinstance(self.qtgui_vector_sink_f_0_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_vector_sink_f_0_0_win)
-        self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
-            Vector_length, #size
-            window.WIN_FLATTOP, #wintype
-            HI21, #fc
-            samp_rate, #bw
-            "Direct", #name
-            1,
-            None # parent
-        )
-        self.qtgui_freq_sink_x_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0.set_y_axis((-140), 10)
-        self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
-        self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
-        self.qtgui_freq_sink_x_0.enable_autoscale(True)
-        self.qtgui_freq_sink_x_0.enable_grid(True)
-        self.qtgui_freq_sink_x_0.set_fft_average(0.1)
-        self.qtgui_freq_sink_x_0.enable_axis_labels(True)
-        self.qtgui_freq_sink_x_0.enable_control_panel(False)
-        self.qtgui_freq_sink_x_0.set_fft_window_normalized(False)
-
-
-
-        labels = ['', '', '', '', '',
-            '', '', '', '', '']
-        widths = [1, 1, 1, 1, 1,
-            1, 1, 1, 1, 1]
-        colors = ["blue", "red", "green", "black", "cyan",
-            "magenta", "yellow", "dark red", "dark green", "dark blue"]
-        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
-            1.0, 1.0, 1.0, 1.0, 1.0]
-
-        for i in range(1):
-            if len(labels[i]) == 0:
-                self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
-            else:
-                self.qtgui_freq_sink_x_0.set_line_label(i, labels[i])
-            self.qtgui_freq_sink_x_0.set_line_width(i, widths[i])
-            self.qtgui_freq_sink_x_0.set_line_color(i, colors[i])
-            self.qtgui_freq_sink_x_0.set_line_alpha(i, alphas[i])
-
-        self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
         self.osmosdr_source_1 = osmosdr.source(
             args="numchan=" + str(1) + " " + 'airspy=1'
         )
@@ -234,7 +220,20 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.osmosdr_source_1.set_bb_gain(20, 0)
         self.osmosdr_source_1.set_antenna('', 0)
         self.osmosdr_source_1.set_bandwidth(0, 0)
+        self._int_time_tool_bar = Qt.QToolBar(self)
+        self._int_time_tool_bar.addWidget(Qt.QLabel("Integration Time " + ": "))
+        self._int_time_line_edit = Qt.QLineEdit(str(self.int_time))
+        self._int_time_tool_bar.addWidget(self._int_time_line_edit)
+        self._int_time_line_edit.editingFinished.connect(
+            lambda: self.set_int_time(int(str(self._int_time_line_edit.text()))))
+        self.qtgui_tab_widget_grid_layout_0.addWidget(self._int_time_tool_bar, 0, 0, 1, 2)
+        for r in range(0, 1):
+            self.qtgui_tab_widget_grid_layout_0.setRowStretch(r, 1)
+        for c in range(0, 2):
+            self.qtgui_tab_widget_grid_layout_0.setColumnStretch(c, 1)
+        self.fft_vxx_0_0 = fft.fft_vcc(Vector_length, True, window.hanning(Vector_length), True, 6)
         self.fft_vxx_0 = fft.fft_vcc(Vector_length, True, window.hanning(Vector_length), True, 6)
+        self.blocks_stream_to_vector_0_1 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0_0_0_0_2_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0_0_0_0_2 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0_0_0_0_1_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
@@ -245,7 +244,6 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.blocks_stream_to_vector_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_nlog10_ff_1 = blocks.nlog10_ff(1, Vector_length, 0)
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0 = blocks.multiply_const_vcc(Window[9*Vector_length:10*Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2 = blocks.multiply_const_vcc(Window[7*Vector_length:8*Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_1_0 = blocks.multiply_const_vcc(Window[8*Vector_length:9*Vector_length])
@@ -256,10 +254,8 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0_0_0 = blocks.multiply_const_vcc(Window[2*Vector_length:3*Vector_length])
         self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc(Window[Vector_length:2*Vector_length])
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
+        self.blocks_integrate_xx_0_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
-        self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/Desktop/Radio_tests/06_03/sun', False)
-        self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
         self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
         self.blocks_delay_0_0_0_0_2 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
@@ -270,6 +266,7 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.blocks_delay_0_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (3*Vector_length))
         self.blocks_delay_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (2*Vector_length))
         self.blocks_delay_0 = blocks.delay(gr.sizeof_gr_complex*1, Vector_length)
+        self.blocks_complex_to_mag_squared_1_0 = blocks.complex_to_mag_squared(Vector_length)
         self.blocks_complex_to_mag_squared_1 = blocks.complex_to_mag_squared(Vector_length)
         self.blocks_add_xx_0 = blocks.add_vcc(Vector_length)
 
@@ -278,8 +275,8 @@ class PPFB(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.connect((self.blocks_add_xx_0, 0), (self.fft_vxx_0, 0))
-        self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0, 0))
         self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0_0, 0))
+        self.connect((self.blocks_complex_to_mag_squared_1_0, 0), (self.blocks_integrate_xx_0_0_0, 0))
         self.connect((self.blocks_delay_0, 0), (self.blocks_stream_to_vector_0_0, 0))
         self.connect((self.blocks_delay_0_0, 0), (self.blocks_stream_to_vector_0_0_0, 0))
         self.connect((self.blocks_delay_0_0_0, 0), (self.blocks_stream_to_vector_0_0_0_0, 0))
@@ -290,9 +287,9 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_delay_0_0_0_0_2, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0_0, 0), (self.blocks_stream_to_vector_0, 0))
-        self.connect((self.blocks_integrate_xx_0, 0), (self.blocks_nlog10_ff_1, 0))
         self.connect((self.blocks_integrate_xx_0_0, 0), (self.qtgui_vector_sink_f_0_0, 0))
         self.connect((self.blocks_integrate_xx_0_0, 0), (self.qtgui_vector_sink_f_0_0_0, 0))
+        self.connect((self.blocks_integrate_xx_0_0_0, 0), (self.qtgui_vector_sink_f_0_0_1, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.blocks_multiply_const_vxx_0_0_0, 0), (self.blocks_add_xx_0, 2))
@@ -303,7 +300,6 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0), (self.blocks_add_xx_0, 8))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0), (self.blocks_add_xx_0, 7))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0), (self.blocks_add_xx_0, 9))
-        self.connect((self.blocks_nlog10_ff_1, 0), (self.blocks_file_sink_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0, 0))
@@ -314,7 +310,9 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_stream_to_vector_0_0_0_0_0_1_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0_0_0_2, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0))
+        self.connect((self.blocks_stream_to_vector_0_1, 0), (self.fft_vxx_0_0, 0))
         self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_1, 0))
+        self.connect((self.fft_vxx_0_0, 0), (self.blocks_complex_to_mag_squared_1_0, 0))
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0, 0))
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0, 0))
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0, 0))
@@ -325,7 +323,7 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2, 0))
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2_0, 0))
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2_0_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.qtgui_freq_sink_x_0, 0))
+        self.connect((self.osmosdr_source_1, 0), (self.blocks_stream_to_vector_0_1, 0))
 
 
     def closeEvent(self, event):
@@ -394,9 +392,9 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.set_Bandwidth(self.samp_rate)
         self.set_Frequency_Step_Size(self.samp_rate/self.Vector_length)
         self.osmosdr_source_1.set_sample_rate(self.samp_rate)
-        self.qtgui_freq_sink_x_0.set_frequency_range(self.HI21, self.samp_rate)
         self.qtgui_vector_sink_f_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
         self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+        self.qtgui_vector_sink_f_0_0_1.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
 
     def get_one_sec_display_integration(self):
         return self.one_sec_display_integration
@@ -439,9 +437,9 @@ class PPFB(gr.top_block, Qt.QWidget):
     def set_HI21(self, HI21):
         self.HI21 = HI21
         self.osmosdr_source_1.set_center_freq(self.HI21, 0)
-        self.qtgui_freq_sink_x_0.set_frequency_range(self.HI21, self.samp_rate)
         self.qtgui_vector_sink_f_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
         self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+        self.qtgui_vector_sink_f_0_0_1.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
 
     def get_Frequency_Step_Size(self):
         return self.Frequency_Step_Size
@@ -450,6 +448,7 @@ class PPFB(gr.top_block, Qt.QWidget):
         self.Frequency_Step_Size = Frequency_Step_Size
         self.qtgui_vector_sink_f_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
         self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+        self.qtgui_vector_sink_f_0_0_1.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
 
     def get_Bandwidth(self):
         return self.Bandwidth
