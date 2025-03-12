@@ -43,6 +43,6 @@ class Interface(tk.Frame):
 
         self.right_panes.add(self.pointing_display)
 
-        self.left_panes.grid(column=0, row=0)
+        self.left_panes.grid(column=0, row=0, sticky="nw")
 
         self.right_panes.grid(column=1, row=0, sticky="w")
