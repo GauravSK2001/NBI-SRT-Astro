@@ -44,6 +44,16 @@ class IntegrationFrame(tk.Frame):
 
         self.int_message_label = tk.Label(self, textvariable=self.int_message_var, justify="left", anchor="w")
 
+        #Create labels for observatory conditions
+
+        self.temperature_label = tk.Label(self, text=r"Air Temperature [$^\circ$ C]:")
+
+        self.pressure_label = tk.Label(self, text="Air Pressure [kPa]:")
+
+        self.humidity_label = tk.Label(self, text="Absolute Humidity:")
+
+        self.cloud_label = tk.Label(self, text="Cloud cover [decimal]:")
+
         #Create entry and buttons for integration and file saving
 
         self.savefilename_entry = tk.Entry(self, textvariable=self.savefilename_var)
@@ -111,6 +121,7 @@ class IntegrationFrame(tk.Frame):
             #If no detector is present, count down an integration and show progress bar.
             time_elapsed = 0
 
+
             while time_elapsed <= t:
                 self.int_time_elapsed.set(time_elapsed)
 
@@ -128,8 +139,11 @@ class IntegrationFrame(tk.Frame):
             #detector.integrate(t)
             print("Interface: Integrating with detector.")
 
-            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t])
+            self.detector.status = "active"
+
+            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t, self.savefilename_var.get()])
             integrate_thread.start()
+
 
 
 
@@ -143,7 +157,7 @@ class IntegrationFrame(tk.Frame):
     def stop_integration(self):
         #Stop detector integration
 
-        self.detector.stop()
+        self.detector.stop_integration()
 
         message = f"Integration Stopped"
         self.set_int_message(message)

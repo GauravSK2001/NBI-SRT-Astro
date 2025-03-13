@@ -36,10 +36,10 @@ class TrackingMap(tk.Frame):
         #Create variables for time display and time format
         self.time_format_string = "%d/%m/%Y %H:%M:%S"
 
-        self.timevar = tk.StringVar(self, value=time.strftime(self.time_format_string, time.gmtime()))
+        #self.timevar = tk.StringVar(self, value=time.strftime(self.time_format_string, time.gmtime()))
 
         #Create pointing display label
-        self.pointing_disp_label = tk.Label(self, text="Pointing and Time Display")
+        #self.pointing_disp_label = tk.Label(self, text="Pointing and Time Display")
 
         #Create labels for the current time display
         #self.time_disp_label = tk.Label(self, text="Current Time (UTC):")

@@ -27,7 +27,7 @@ import time
 
 class PPFB(gr.top_block):
 
-    def __init__(self, int_time = 300, filename="radio_integration"):
+    def __init__(self):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
 
         ##################################################
@@ -40,8 +40,8 @@ class PPFB(gr.top_block):
         self.samp_rate = samp_rate = 6e6
         self.variable_0 = variable_0 = 0
         self.one_sec_display_integration = one_sec_display_integration = 1
-        self.int_time = int_time
-        self.filename = filename
+        self.int_time = 300
+        self.filename = "radio_integration"
         self.Window = Window = sinc
         self.PFB_bandwidth_vector_length = PFB_bandwidth_vector_length = 7e3
         self.HI21 = HI21 = 1420.405751768e6
@@ -289,7 +289,11 @@ class PPFB(gr.top_block):
         self.Bandwidth = Bandwidth
 
     
-    def run(self):
+    def integrate(self, int_time, filename):
+
+        self.set_int_time(int_time)
+
+        self.set_filename(filename)
 
         def sig_handler(sig=None, frame=None):
             self.stop()
@@ -308,6 +312,8 @@ class PPFB(gr.top_block):
             pass
         self.stop()
         self.wait()
+
+        
 
 
 
