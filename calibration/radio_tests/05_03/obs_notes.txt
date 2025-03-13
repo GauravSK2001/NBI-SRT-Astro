@@ -1,4 +1,8 @@
 L,B=140 0
 
-Partially cloudy. 4 pm
+Partially cloudy. 4 pm. 
 300 sec integration
+
+45 deg elavation
+
+12 C air temp

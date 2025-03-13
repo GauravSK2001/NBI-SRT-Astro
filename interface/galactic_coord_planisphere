@@ -40,7 +40,7 @@ class GalacticMap(tk.Frame):
         self.PRESSURE = None
         self.TEMPERATURE = None
         self.HUMIDITY = None
-        self.WAVELENGTH = 21.106  # cm for 1.4 GHz (21-cm line)
+        self.WAVELENGTH = 21.106  # cm
 
         # Precompute the observer location
         self.obs_loc = EarthLocation(

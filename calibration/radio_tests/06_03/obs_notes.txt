@@ -2,3 +2,7 @@ L,B=110 0
 
 Sunny. 12 pm
 300 sec integration
+
+30deg elavation
+
+12 C air temp
