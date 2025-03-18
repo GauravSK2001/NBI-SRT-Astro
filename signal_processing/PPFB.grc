@@ -121,19 +121,19 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '300'
+    value: '10'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1672, 888.0]
+    coordinate: [1912, 928.0]
     rotation: 0
     state: enabled
 - name: one_sec_display_integration
   id: variable
   parameters:
     comment: ''
-    value: '10'
+    value: '1'
   states:
     bus_sink: false
     bus_source: false
@@ -222,7 +222,7 @@ blocks:
     bus_structure: null
     coordinate: [72, 636.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: analog_sig_source_x_0_1
   id: analog_sig_source_x
   parameters:
@@ -281,7 +281,7 @@ blocks:
     bus_structure: null
     coordinate: [304, 348.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: blocks_complex_to_mag_squared_1
   id: blocks_complex_to_mag_squared
   parameters:
@@ -521,7 +521,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: /Users/gauravsenthilkumar/Desktop/Radio_tests/06_03/sun
+    file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/calibration/Frequency_Cal
     type: float
     unbuffered: 'False'
     vlen: Vector_length
@@ -820,6 +820,24 @@ blocks:
     coordinate: [1976, 496.0]
     rotation: 0
     state: enabled
+- name: blocks_multiply_const_vxx_1_0
+  id: blocks_multiply_const_vxx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    const: np.ones(Vector_length)/one_sec_display_integration
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    type: float
+    vlen: Vector_length
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1344, 376.0]
+    rotation: 0
+    state: enabled
 - name: blocks_nlog10_ff_1
   id: blocks_nlog10_ff
   parameters:
@@ -853,7 +871,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1728, 628.0]
+    coordinate: [1728, 636.0]
     rotation: 0
     state: enabled
 - name: blocks_nlog10_ff_1_0_0
@@ -1128,7 +1146,7 @@ blocks:
     bus_structure: null
     coordinate: [264, 640.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: fft_vxx_0
   id: fft_vxx
   parameters:
@@ -1260,8 +1278,8 @@ blocks:
     ant7: ''
     ant8: ''
     ant9: ''
-    args: airspy=1
-    bb_gain0: '20'
+    args: airspy=0
+    bb_gain0: '0'
     bb_gain1: '20'
     bb_gain10: '20'
     bb_gain11: '20'
@@ -1325,7 +1343,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    clock_source0: ''
+    clock_source0: external
     clock_source1: ''
     clock_source2: ''
     clock_source3: ''
@@ -1564,7 +1582,7 @@ blocks:
     num_mboards: '1'
     sample_rate: samp_rate
     sync: pc_clock
-    time_source0: gpsdo
+    time_source0: external
     time_source1: ''
     time_source2: ''
     time_source3: ''
@@ -1579,8 +1597,8 @@ blocks:
     bus_structure: null
     coordinate: [176, 732.0]
     rotation: 0
-    state: enabled
-- name: osmosdr_source_1_0
+    state: disabled
+- name: osmosdr_source_1_1
   id: osmosdr_source
   parameters:
     affinity: ''
@@ -1618,7 +1636,7 @@ blocks:
     ant8: ''
     ant9: ''
     args: airspy=0
-    bb_gain0: '20'
+    bb_gain0: '0'
     bb_gain1: '20'
     bb_gain10: '20'
     bb_gain11: '20'
@@ -1682,7 +1700,7 @@ blocks:
     bw7: '0'
     bw8: '0'
     bw9: '0'
-    clock_source0: ''
+    clock_source0: external
     clock_source1: ''
     clock_source2: ''
     clock_source3: ''
@@ -1723,7 +1741,7 @@ blocks:
     corr7: '0'
     corr8: '0'
     corr9: '0'
-    dc_offset_mode0: '10'
+    dc_offset_mode0: '0'
     dc_offset_mode1: '0'
     dc_offset_mode10: '0'
     dc_offset_mode11: '0'
@@ -1851,7 +1869,7 @@ blocks:
     gain_mode7: 'False'
     gain_mode8: 'False'
     gain_mode9: 'False'
-    if_gain0: '20'
+    if_gain0: '0'
     if_gain1: '20'
     if_gain10: '20'
     if_gain11: '20'
@@ -1921,7 +1939,7 @@ blocks:
     num_mboards: '1'
     sample_rate: samp_rate
     sync: pc_clock
-    time_source0: gpsdo
+    time_source0: external
     time_source1: ''
     time_source2: ''
     time_source3: ''
@@ -1934,9 +1952,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [72, 468.0]
+    coordinate: [64, 456.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
@@ -2112,7 +2130,7 @@ blocks:
     width8: '1'
     width9: '1'
     x_axis_label: '"Frequency [MHz]"'
-    x_start: (HI21-samp_rate/2)/1e6
+    x_start: (-samp_rate/2)/1e6
     x_step: (Frequency_Step_Size)/1e6
     x_units: '"MHz"'
     y_axis_label: '"Power log"'
@@ -2271,7 +2289,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1392, 1064.0]
+    coordinate: [1392, 1008.0]
     rotation: 0
     state: disabled
 - name: qtgui_vector_sink_f_0_0_1_0
@@ -2381,9 +2399,9 @@ connections:
 - [blocks_delay_0_0_0_0_2_0_0, '0', blocks_stream_to_vector_0, '0']
 - [blocks_integrate_xx_0, '0', blocks_multiply_const_vxx_1, '0']
 - [blocks_integrate_xx_0, '0', blocks_nlog10_ff_1, '0']
+- [blocks_integrate_xx_0_0, '0', blocks_multiply_const_vxx_1_0, '0']
 - [blocks_integrate_xx_0_0, '0', blocks_nlog10_ff_1_0, '0']
 - [blocks_integrate_xx_0_0, '0', blocks_sub_xx_0, '0']
-- [blocks_integrate_xx_0_0, '0', qtgui_vector_sink_f_0_0_0, '0']
 - [blocks_integrate_xx_0_0_0, '0', blocks_nlog10_ff_1_0_0, '0']
 - [blocks_integrate_xx_0_0_0, '0', blocks_sub_xx_0, '1']
 - [blocks_integrate_xx_0_0_0, '0', qtgui_vector_sink_f_0_0_1, '0']
@@ -2399,6 +2417,7 @@ connections:
 - [blocks_multiply_const_vxx_0_0_0_0_0_2, '0', blocks_add_xx_0, '7']
 - [blocks_multiply_const_vxx_0_0_0_0_0_2_0, '0', blocks_add_xx_0, '9']
 - [blocks_multiply_const_vxx_1, '0', blocks_file_sink_0, '0']
+- [blocks_multiply_const_vxx_1_0, '0', qtgui_vector_sink_f_0_0_0, '0']
 - [blocks_nlog10_ff_1, '0', blocks_multiply_const_vxx_1, '0']
 - [blocks_nlog10_ff_1_0, '0', qtgui_vector_sink_f_0_0, '0']
 - [blocks_nlog10_ff_1_0_0, '0', qtgui_vector_sink_f_0_0_1, '0']
@@ -2436,7 +2455,7 @@ connections:
 - [osmosdr_source_1, '0', blocks_delay_0_0_0_0_2_0_0, '0']
 - [osmosdr_source_1, '0', blocks_stream_to_vector_0_1, '0']
 - [osmosdr_source_1, '0', qtgui_freq_sink_x_0, '0']
-- [osmosdr_source_1_0, '0', blocks_add_xx_1, '1']
+- [osmosdr_source_1_1, '0', blocks_add_xx_1, '1']
 
 metadata:
   file_format: 1
