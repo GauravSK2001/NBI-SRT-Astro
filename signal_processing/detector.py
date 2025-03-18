@@ -4,13 +4,20 @@ from threading import *
 
 import numpy as np
 
+from astropy.io import fits
+from astropy.coordinates import SkyCoord
+
 
 class Detector():
 
-    def __init__(self, dsp):
+    cache_fpath = "../cached_spectra/"
+    spectra_fpath = "../spectra/"
+
+    def __init__(self, dsp, rotor):
         
         # Initialize signal processing object
         self.signal_proc = dsp
+        self.rotor = rotor
 
 
         #If signal processing is present, use its spectrum settings, or default values otherwise
@@ -71,14 +78,42 @@ class Detector():
             self.signal_proc.stop()
             self.signal_proc.wait()
 
-    def save_spectrum(self, fname):
+    def save_spectrum(self, fname, int_time, rotor_params):
         print("Detector: Saving spectrum to ", fname)
 
+        hdu = fits.PrimaryHDU()
+
+        binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
+        hdu.data = binary_data
+
+        hdu.header = self.make_header(int_time, rotor_params)
+
+        hdu.writeto(Detector.spectra_fpath + fname + ".fits")
+
         self.interface_frame.show_saved_fname(fname)
+
+    def make_header(int_time, rotor_params):
+        hdr = fits.open("../signal_processing/header_template.fits")[0].header
+
+        hdr["EXPTIME"] = int_time
+
+        hdr["HIERARCH OBS START"] = time.strftime("%d-%m-%YT%H:%M:%S", rotor_params[0])
+
+        hdr["HIERARCH GAL LONG"] = rotor_params[1].l.deg
+        hdr["HIERARCH GAL LAT"] = rotor_params[1].b.deg
+
+        hdr["HIERARCH AZ START"] = rotor_params[2].az.deg
+        hdr["HIERARCH EL START"] = rotor_params[2].el.deg
+
+        hdr["HIERARCH AZ END"] = rotor_params[3].az.deg
+        hdr["HIERARCH EL END"] = rotor_params[3].el.deg
+
+        return hdr
+        
         
 
 
-    def integrate(self, int_time, fname):
+    def integrate(self, int_time, fname, rotor_params):
         #Main loop for the object, polls self.status every second.
 
         self.value = 0
@@ -86,7 +121,6 @@ class Detector():
 
         self.status = "active"
 
-        fpath = "../cached_spectra/"
 
         signal_thread = None
 
@@ -116,4 +150,10 @@ class Detector():
 
         if signal_thread is not None:
             signal_thread.join()
-            self.save_spectrum(self.interface_frame.savefilename_var.get())
+
+            if self.rotor is not None:
+                rotor_params.append(self.rotor.current_source_azel)
+            else:
+                rotor_params.append(None)
+
+            self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)

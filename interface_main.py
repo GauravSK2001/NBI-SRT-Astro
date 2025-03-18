@@ -24,8 +24,8 @@ control=None                             #Comment this line if using physical ro
 rotor = SourceTracking(control=control)
 
 #dsp = PPFB()                            #Comment this line if not using detector hardware
-dsp = None                               #Comment this line if using physical rotor
-detector = Detector(dsp=dsp)
+dsp = None                               #Comment this line if using detector hardware
+detector = Detector(dsp=dsp, rotor=rotor)
 
 
 observatory_interface = Interface(root, rotor=rotor, detector=detector)

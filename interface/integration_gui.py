@@ -141,7 +141,11 @@ class IntegrationFrame(tk.Frame):
 
             self.detector.status = "active"
 
-            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t, self.savefilename_var.get()])
+            integration_start = time.gmtime()
+
+            rotor_params = [integration_start, self.rotor.current_source_lb, self.rotor.current_azel]
+
+            integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t, self.savefilename_var.get(), rotor_params])
             integrate_thread.start()
 
 
