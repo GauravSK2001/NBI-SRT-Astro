@@ -14,7 +14,7 @@ import time
 from threading import Thread
 
 
-class integration_display(tk.Frame):
+class IntegrationDisplay(tk.Frame):
 
 
     def __init__(self, master, detector):
@@ -41,7 +41,7 @@ class integration_display(tk.Frame):
 
 
         #Create and configure plot 
-        self.fig = Figure(figsize=(5, 3), dpi=100)
+        self.fig = Figure(figsize=(6, 2.74), dpi=100, layout="constrained")
 
         self.fig.suptitle("One-second Signal Integration")
 
