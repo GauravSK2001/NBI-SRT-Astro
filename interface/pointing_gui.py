@@ -317,6 +317,9 @@ class PointingFrame(tk.Frame):
 
         self.set_pointing_message(message)
 
+        if self.master.integration_controls is not None:
+            self.master.integration_controls.config_button(False)
+
         #If rotor is present, slew to stowed position
         if self.rotor.control is not None:
             try:
@@ -335,6 +338,10 @@ class PointingFrame(tk.Frame):
             self.reset_inputs(True, True)
 
     def stop(self):
+
+        if self.master.detector is not None and self.master.detector.status == "active":
+            print("Interface: Stopping integration due to tracking stop")
+            self.master.detector.stop()
 
         if self.rotor.state == "tracking" or self.rotor.state == "slewing":
             print("Interface: Stopping telescope")
