@@ -1,5 +1,5 @@
 .git/
-
+**.DS_Store
 **.pdf
 digital_signal_processing/
 source_tracking/exceptions

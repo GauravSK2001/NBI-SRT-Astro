@@ -1,0 +1,15 @@
+Azimuth: 120 deg
+
+Cold: el: 30 deg overcast
+45 deg partly overcast
+Time: 11:43
+11:51
+300s integration
+
+Hot:
+6 C
+
+Grass
+
+Plane: l:110 b~-5 deg
+
