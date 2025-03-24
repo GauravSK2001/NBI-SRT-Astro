@@ -135,7 +135,7 @@ class SourceTracking:
             return False
         return True
 
-    def check_if_reached_target(self, target_az, target_el, poll_interval=5):
+    def check_if_reached_target(self, target_az, target_el, poll_interval=3):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
         while self.state == "slewing":
