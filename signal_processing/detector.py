@@ -114,7 +114,7 @@ class Detector():
 
 
     def integrate(self, int_time, fname, rotor_params):
-        #Main loop for the object, polls self.status every second.
+        #Main loop for the object
 
         self.value = 0
         self.maximum = int_time
@@ -122,38 +122,26 @@ class Detector():
         self.status = "active"
 
 
-        signal_thread = None
 
         if self.signal_proc is not None:
             print("Detector: Integrating with DSP")
-            signal_thread = Thread(target=self.signal_proc.integrate, daemon=True, args=[int_time, fname])
-            signal_thread.start()
+            
+            self.signal_proc.integrate(int_time, fname)
 
         
 
-        while self.status == "active":
-            print(f"Detector: Integrating {self.value}/{self.maximum}")
-            
-
-
-            self.interface_frame.update_progressbar(self.maximum, self.value)
-
-
-            if self.value >= self.maximum:
-                self.status = "idle"
-                self.interface_frame.update_progressbar(self.maximum, self.value)
-                self.interface_frame.set_int_message("Integration Complete")
+        
+        self.status = "idle"
+                #self.interface_frame.update_progressbar(self.maximum, self.value)
+        self.interface_frame.set_int_message("Integration Complete")
                 
 
-            time.sleep(1)
-            self.value += 1
 
-        if signal_thread is not None:
-            signal_thread.join()
+       
 
-            if self.rotor is not None:
-                rotor_params.append(self.rotor.current_source_azel)
-            else:
-                rotor_params.append(None)
+        if self.rotor is not None:
+            rotor_params.append(self.rotor.current_source_azel)
+        else:
+            rotor_params.append(None)
 
-            self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)
+        self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)

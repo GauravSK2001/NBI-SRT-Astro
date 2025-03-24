@@ -66,7 +66,7 @@ class IntegrationFrame(tk.Frame):
 
         #Create integration progress bar
 
-        self.int_progress_bar = ttk.Progressbar(self, orient="horizontal", variable=self.int_time_elapsed, length=450)
+        #self.int_progress_bar = ttk.Progressbar(self, orient="horizontal", variable=self.int_time_elapsed, length=450)
 
         #Arrange integration objects
 
@@ -91,7 +91,7 @@ class IntegrationFrame(tk.Frame):
 
         self.int_message_label.grid(column=1, row=3, columnspan=7, pady=2, sticky="w")
 
-        self.int_progress_bar.grid(column=0, row=4, columnspan=8, padx=4, pady=2, sticky="w")
+        #self.int_progress_bar.grid(column=0, row=4, columnspan=8, padx=4, pady=2, sticky="w")
 
     def integrate(self, t=None):
         #Take input integration time and integrate.
@@ -115,7 +115,7 @@ class IntegrationFrame(tk.Frame):
 
         print(f"Interface: Integrating for {t} seconds")
 
-        self.int_progress_bar.config(maximum=int(t))
+        #self.int_progress_bar.config(maximum=int(t))
 
         if self.detector is None:
             #If no detector is present, count down an integration and show progress bar.
@@ -161,7 +161,7 @@ class IntegrationFrame(tk.Frame):
     def stop_integration(self):
         #Stop detector integration
 
-        self.detector.stop_integration()
+        self.detector.stop()
 
         message = f"Integration Stopped"
         self.set_int_message(message)
