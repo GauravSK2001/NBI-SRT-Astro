@@ -121,7 +121,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '10'
+    value: '300'
   states:
     bus_sink: false
     bus_source: false
@@ -222,7 +222,7 @@ blocks:
     bus_structure: null
     coordinate: [72, 636.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: analog_sig_source_x_0_1
   id: analog_sig_source_x
   parameters:
@@ -281,7 +281,7 @@ blocks:
     bus_structure: null
     coordinate: [304, 348.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: blocks_complex_to_mag_squared_1
   id: blocks_complex_to_mag_squared
   parameters:
@@ -521,7 +521,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/calibration/Frequency_Cal
+    file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/calibration/radio_tests/20_03/plane
     type: float
     unbuffered: 'False'
     vlen: Vector_length
@@ -1146,7 +1146,7 @@ blocks:
     bus_structure: null
     coordinate: [264, 640.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: fft_vxx_0
   id: fft_vxx
   parameters:
@@ -1278,7 +1278,7 @@ blocks:
     ant7: ''
     ant8: ''
     ant9: ''
-    args: airspy=0
+    args: airspy=0,bias=1,pack=0
     bb_gain0: '0'
     bb_gain1: '20'
     bb_gain10: '20'
@@ -1581,7 +1581,7 @@ blocks:
     nchan: '1'
     num_mboards: '1'
     sample_rate: samp_rate
-    sync: pc_clock
+    sync: none
     time_source0: external
     time_source1: ''
     time_source2: ''
@@ -1597,7 +1597,7 @@ blocks:
     bus_structure: null
     coordinate: [176, 732.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: osmosdr_source_1_1
   id: osmosdr_source
   parameters:
@@ -1954,7 +1954,7 @@ blocks:
     bus_structure: null
     coordinate: [64, 456.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: qtgui_freq_sink_x_0
   id: qtgui_freq_sink_x
   parameters:
