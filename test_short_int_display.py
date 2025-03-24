@@ -17,7 +17,7 @@ from threading import Thread
 class IntegrationDisplay(tk.Frame):
 
 
-    def __init__(self, master, detector):
+    def __init__(self, master):
         super().__init__(master)
         self.grid()
 
@@ -67,7 +67,7 @@ class IntegrationDisplay(tk.Frame):
         #Update one second integration plot from current cached binary file
         self.clear_plotted_objects()
 
-        onesec_int = np.fromfile(open("../cached_spectra/onesec_test"), dtype=np.float32)
+        onesec_int = np.fromfile(open(".cached_spectra/onesec_test"), dtype=np.float32)
 
         self.axes.plot(self.freq, onesec_int, "b-")
 
