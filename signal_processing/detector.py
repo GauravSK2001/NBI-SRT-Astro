@@ -51,7 +51,7 @@ class Detector():
         self.interface_frame = interface_frame
         print("Detector: Added interface")
 
-    def set_interface_frame(self, display_frame):
+    def set_interface_display_frame(self, display_frame):
         #Take interface frame
         self.integration_display_frame = display_frame
         print("Detector: Added integration display frame")

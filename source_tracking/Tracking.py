@@ -102,22 +102,18 @@ class SourceTracking:
 
     def set_integration_button_state(self):
         #Enable or disable integration buttons based on tracking status
+        return None
+        #if self.gui_integration_frame is not None:
 
-        if self.gui_integration_frame is not None:
-
-            print("Rotor: Enabling Integrate button")
-            if self.state == "tracking":
-                self.gui_integration_frame.config_button(True)
-            else:
-                self.gui_integration_frame.config_button(False)
+        #    print("Rotor: Enabling Integrate button")
+        #    if self.state == "tracking":
+        #        self.gui_integration_frame.config_button(True)
+        #    else:
+        #        self.gui_integration_frame.config_button(False)
         
 
 
 
-    def update_gui_pointing_plot(self, az, el):
-        #STUB
-        #Update GUI pointing plot with current az, el coordinates.
-        return None
 
 
     #Rotor methods

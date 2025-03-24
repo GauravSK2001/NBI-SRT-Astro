@@ -60,7 +60,7 @@ class IntegrationFrame(tk.Frame):
 
         self.int_time_entry = tk.Entry(self, textvariable=self.int_time_var)
 
-        self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate, state="disabled")
+        self.integrate_button = tk.Button(self, text="Integrate", width=13, command=self.integrate)
 
         self.stop_int_button = tk.Button(self, text="Stop integration", width=13, command=self.stop_integration)
 
@@ -143,7 +143,7 @@ class IntegrationFrame(tk.Frame):
 
             integration_start = time.gmtime()
 
-            rotor_params = [integration_start, self.rotor.current_source_lb, self.rotor.current_azel]
+            rotor_params = [integration_start, self.rotor.current_source_lb, self.rotor.current_source_azel]
 
             integrate_thread = Thread(target=self.detector.integrate, daemon=True, args=[t, self.savefilename_var.get(), rotor_params])
             integrate_thread.start()

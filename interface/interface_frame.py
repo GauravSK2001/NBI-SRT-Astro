@@ -36,6 +36,7 @@ class Interface(tk.Frame):
 
         #Create 1-second integration spectrum frame
         self.short_integration_display = IntegrationDisplay(self, detector=detector)
+        detector.set_interface_display_frame(self.short_integration_display )
 
         #Arrange objects
 
