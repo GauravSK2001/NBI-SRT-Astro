@@ -394,7 +394,7 @@ blocks:
     alias: ''
     append: 'False'
     comment: ''
-    file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/calibration/radio_tests/20_03/plane
+    file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/test
     type: float
     unbuffered: 'False'
     vlen: Vector_length
@@ -868,7 +868,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [40, 88.0]
+    coordinate: [40, 128.0]
     rotation: 0
     state: enabled
 - name: note_0_0
