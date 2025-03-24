@@ -31,7 +31,7 @@ class IntegrationDisplay(tk.Frame):
 
 
         #Create and configure plot 
-        self.fig = Figure(figsize=(6, 2.74), dpi=100, layout="constrained")
+        self.fig = Figure(figsize=(6, 2.74), dpi=250, layout="constrained")
 
         self.fig.suptitle("One-second Signal Integration")
 
@@ -48,12 +48,21 @@ class IntegrationDisplay(tk.Frame):
 
         self.canvas.get_tk_widget().grid(column=0, row=0, pady=2, padx=4, sticky="nw")
 
+        self.start_button = tk.Button(self, text="Start", width=13, command=self.start)
+        self.start_button.grid(column=0, row=1, pady=2, padx=4, sticky="nw")
+
+    def start(self):        
+        loop_thread = Thread(target=self.update_loop)
+        loop_thread.start()
+
+
+    def update_loop(self):
         i = 0
         while i < 150:
             print(i)
             self.update_plot()
             time.sleep(1)
-
+            i += 1
 
 
     def clear_plotted_objects(self):
@@ -68,15 +77,20 @@ class IntegrationDisplay(tk.Frame):
         self.clear_plotted_objects()
 
         onesec_int = np.fromfile(open(".cached_spectra/onesec_test"), dtype=np.float32)
+        lenth=len(self.freq)
 
-        self.axes.plot(self.freq, onesec_int, "b-")
+        print(lenth, len(onesec_int))
+        self.axes.plot(self.freq, onesec_int[-lenth:], "b-")
+
+        self.canvas.draw()
 
 
 root = tk.Tk()
 
 root.title("Test one second integration")
-root.geometry("550x550")
+root.geometry("700x400")
 
 
 observatory_interface = IntegrationDisplay(root)
+#observatory_interface.update_loop()
 observatory_interface.mainloop()

@@ -29,7 +29,7 @@ import sip
 
 
 
-class Final_Spectrograph_Filter(gr.top_block, Qt.QWidget):
+class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
     def __init__(self):
         gr.top_block.__init__(self, "General Filter Bank", catch_exceptions=True)
@@ -52,7 +52,7 @@ class Final_Spectrograph_Filter(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter")
+        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter_qttest")
 
         try:
             geometry = self.settings.value("geometry")
@@ -158,9 +158,9 @@ class Final_Spectrograph_Filter(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', False)
+        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', True)
         self.blocks_file_sink_0_0.set_unbuffered(False)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/test', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int', True)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
         self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
@@ -230,7 +230,7 @@ class Final_Spectrograph_Filter(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter")
+        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter_qttest")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -340,7 +340,7 @@ class Final_Spectrograph_Filter(gr.top_block, Qt.QWidget):
 
 
 
-def main(top_block_cls=Final_Spectrograph_Filter, options=None):
+def main(top_block_cls=Final_Spectrograph_Filter_qttest, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
