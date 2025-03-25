@@ -27,6 +27,7 @@ class Interface(tk.Frame):
         #Create pointing control frame
         self.pointing_controls = PointingFrame(self, rotor=rotor, bd=0, width=550, height=125)
         self.rotor.set_gui_control_frame(self.pointing_controls)
+        
 
         #Create integration control frame
         self.integration_controls = IntegrationFrame(self, rotor=rotor, detector=detector, bd=0, width=500, height=125)
@@ -36,6 +37,7 @@ class Interface(tk.Frame):
 
         #Create pointing display frame
         self.pointing_display = TrackingMap(self, rotor=rotor,  bd=0, width=500, height=125)
+        self.rotor.set_gui_display_frame(self.pointing_display)
 
         #Create 1-second integration spectrum frame
         self.short_integration_display = IntegrationDisplay(self, detector=detector)

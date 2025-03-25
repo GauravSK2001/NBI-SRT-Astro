@@ -77,10 +77,10 @@ class IntegrationDisplay(tk.Frame):
         self.clear_plotted_objects()
 
         onesec_int = np.fromfile(open(".cached_spectra/onesec_test"), dtype=np.float32)
-        lenth=len(self.freq)
+        length=len(self.freq)
 
-        print(lenth, len(onesec_int))
-        self.axes.plot(self.freq, onesec_int[-lenth:], "b-")
+        print(length, len(onesec_int))
+        self.axes.plot(self.freq, onesec_int[-length:], "b-")
 
         self.canvas.draw()
 

@@ -7,6 +7,8 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
+import os
+
 
 class Detector():
 
@@ -26,14 +28,14 @@ class Detector():
             self.n_bins = self.signal_proc.Vector_length
             self.Bandwidth = self.signal_proc.Bandwidth
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = (np.linspace((self.central_freq-self.Bandwidth/2), self.central_freq + self.Bandwidth/2 , self.n_bins)/1e6)
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
 
         else:
             self.central_freq = 1420.405751768e6
             self.n_bins = int(2**13)
             self.Bandwidth = 6e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = (np.linspace((self.central_freq-self.Bandwidth/2), self.central_freq + self.Bandwidth/2 , self.n_bins)/1e6)
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
             
 
         self.interface_frame = None
@@ -122,26 +124,25 @@ class Detector():
         self.status = "active"
 
 
-
         if self.signal_proc is not None:
             print("Detector: Integrating with DSP")
             
             self.signal_proc.integrate(int_time, fname)
 
         
-
-        
         self.status = "idle"
-                #self.interface_frame.update_progressbar(self.maximum, self.value)
         self.interface_frame.set_int_message("Integration Complete")
-                
-
-
-       
+            
 
         if self.rotor is not None:
             rotor_params.append(self.rotor.current_source_azel)
         else:
             rotor_params.append(None)
 
+        self.delete_onesec_int_cache()
+
         self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)
+
+    def delete_onesec_int_cache(self):
+        #Delete cached one-second spectra
+        os.remove(Detector.cache_fpath + "onesec_int")

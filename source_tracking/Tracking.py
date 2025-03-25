@@ -65,6 +65,10 @@ class SourceTracking:
     def set_gui_display_frame(self, gui_display_frame):
         #Take interface pointing display frame
         self.gui_tracking_display_frame = gui_display_frame
+
+        self.update_tracking_plot()
+
+
         print("Rotor: Added interface pointing display")
 
     def update_gui_message(self, message, is_error=False):
@@ -80,6 +84,21 @@ class SourceTracking:
         if self.gui_control_frame is not None:
             print(f"Rotor: Updating GUI azel to az {az}, el {el}")
             self.gui_control_frame.set_azel_entries(az, el)
+
+        
+
+    def update_tracking_plot(self):
+        #Update GUI tracking plot with current azimuth and elevation
+        if self.gui_tracking_display_frame is not None:
+            if self.control is not None:
+
+                rotor_az, rotor_el = self.rotor.control.status()
+                rotor_az = round(rotor_az)
+                rotor_el = round(rotor_el)
+                self.gui_tracking_display_frame.update_pointing_plot(az=rotor_az, el=rotor_el)
+                print(f"Rotor: Updating tracking plot to az {rotor_az}, el {rotor_el}")
+
+
 
     def enable_pointing_gui_buttons(self):
         #Re-enable GUI buttons after slew completes or tracking is stopped, if GUI is present
@@ -137,11 +156,12 @@ class SourceTracking:
         while self.state == "slewing":
             if self.control:
                 current_az, current_el = self.control.status()
-                
+                self.update_tracking_plot()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
                     print("\nTarget Reached.")
                     self.update_gui_azel_coordinates(current_az, current_el)
+                    self.update_tracking_plot()
                     break
                 time.sleep(poll_interval)  # Pause between checks
             else:
@@ -315,6 +335,7 @@ class SourceTracking:
         try:
             while self.state == "tracking":
                 self._update_if_source_available()
+                self.update_tracking_plot()
                 time.sleep(update_time)
         except KeyboardInterrupt:
             self._handle_keyboard_interrupt()
@@ -449,6 +470,7 @@ class SourceTracking:
             self.current_source_lb = None
             self.offset = 0 if self.offset != -360 else -360
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
+            self.update_tracking_plot()
             #time.sleep(2)
             self.set_state("idle")
 

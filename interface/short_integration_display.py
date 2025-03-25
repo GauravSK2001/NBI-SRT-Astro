@@ -11,7 +11,7 @@ import numpy as np
 
 import time
 
-from threading import Thread
+from threading import Thread, active_count
 
 
 class IntegrationDisplay(tk.Frame):
@@ -30,14 +30,14 @@ class IntegrationDisplay(tk.Frame):
             self.n_bins = int(2**13)
             self.Bandwidth = 6e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = (np.linspace((self.central_freq-self.Bandwidth/2), self.central_freq + self.Bandwidth/2 , self.n_bins)/1e6)
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
         else:
 
             self.central_freq = 1420.405751768e6
             self.n_bins = int(2**13)
             self.Bandwidth = 6e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = (np.linspace((self.central_freq-self.Bandwidth/2), self.central_freq + self.Bandwidth/2 , self.n_bins)/1e6)
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
 
 
         #Create and configure plot 
@@ -73,7 +73,10 @@ class IntegrationDisplay(tk.Frame):
 
         onesec_int = np.fromfile(open("../cached_spectra/onesec_int"), dtype=np.float32)
 
-        self.axes.plot(self.freq, onesec_int, "b-")
+        length=len(self.freq)
+
+        self.axes.plot(self.freq, onesec_int[-length:], "b-")
+        self.canvas.draw()
 
     def update_loop(self):
         #Repeat updates while detector is integrating
@@ -82,6 +85,7 @@ class IntegrationDisplay(tk.Frame):
 
         while self.detector.status =="active":
             self.update_plot()
+            print(f"Interface: Number of threads active: {active_count()}")
             time.sleep(0.75)
 
     
