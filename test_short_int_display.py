@@ -13,7 +13,7 @@ import time
 
 from threading import Thread
 
-
+# freq_vector = clip(np.arange(0,Vector_length)*frequency_spacing-Bandwidth/2)
 class IntegrationDisplay(tk.Frame):
 
 

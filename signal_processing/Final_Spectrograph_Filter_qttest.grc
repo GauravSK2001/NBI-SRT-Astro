@@ -392,7 +392,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    append: 'True'
+    append: 'False'
     comment: ''
     file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int
     type: float
@@ -410,7 +410,7 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    append: 'True'
+    append: 'False'
     comment: ''
     file: /Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test
     type: float
