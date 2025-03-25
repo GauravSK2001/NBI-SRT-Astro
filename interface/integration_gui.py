@@ -160,7 +160,7 @@ class IntegrationFrame(tk.Frame):
     
     def stop_integration(self):
         #Stop detector integration
-
+        print("Interface: Stopping integration")
         self.detector.stop()
 
         message = f"Integration Stopped"

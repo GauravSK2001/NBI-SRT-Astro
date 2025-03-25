@@ -56,7 +56,7 @@ class TrackingMap(tk.Frame):
 
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
 
-        self.update_pointing_plot()
+        #self.update_pointing_plot()
 
         #Arrange elements
 

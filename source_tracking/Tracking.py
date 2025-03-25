@@ -92,7 +92,7 @@ class SourceTracking:
         if self.gui_tracking_display_frame is not None:
             if self.control is not None:
 
-                rotor_az, rotor_el = self.rotor.control.status()
+                rotor_az, rotor_el = self.control.status()
                 rotor_az = round(rotor_az)
                 rotor_el = round(rotor_el)
                 self.gui_tracking_display_frame.update_pointing_plot(az=rotor_az, el=rotor_el)

@@ -71,7 +71,7 @@ class IntegrationDisplay(tk.Frame):
         #Update one second integration plot from current cached binary file
         self.clear_plotted_objects()
 
-        onesec_int = np.fromfile(open("../cached_spectra/onesec_int"), dtype=np.float32)
+        onesec_int = np.fromfile(open("/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_int"), dtype=np.float32)
 
         length=len(self.freq)
 

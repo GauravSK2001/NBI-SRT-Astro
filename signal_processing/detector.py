@@ -12,7 +12,7 @@ import os
 
 class Detector():
 
-    cache_fpath = "../cached_spectra/"
+    cache_fpath = "../.cached_spectra/"
     spectra_fpath = "../spectra/"
 
     def __init__(self, dsp, rotor):
@@ -28,14 +28,14 @@ class Detector():
             self.n_bins = self.signal_proc.Vector_length
             self.Bandwidth = self.signal_proc.Bandwidth
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing/1e6-self.Bandwidth/1e6/2
 
         else:
             self.central_freq = 1420.405751768e6
             self.n_bins = int(2**13)
             self.Bandwidth = 6e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
+            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing/1e6-self.Bandwidth/1e6/2
             
 
         self.interface_frame = None

@@ -90,9 +90,9 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/'+self.fname, False)
+        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_int', False)
         self.blocks_file_sink_0_0.set_unbuffered(False)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_int', False)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/'+self.fname, False)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
         self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
@@ -271,14 +271,14 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.set_int_time(int_time)
         self.set_fname(fname)
 
-        def sig_handler(sig=None, frame=None):
-            self.stop()
-            self.wait()
+        #def sig_handler(sig=None, frame=None):
+        #    self.stop()
+        #    self.wait()
 
-        sys.exit(0)
+        #    sys.exit(0)
 
-        signal.signal(signal.SIGINT, sig_handler)
-        signal.signal(signal.SIGTERM, sig_handler)
+        #signal.signal(signal.SIGINT, sig_handler)
+        #signal.signal(signal.SIGTERM, sig_handler)
 
         self.start()
 
