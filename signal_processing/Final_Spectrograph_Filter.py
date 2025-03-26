@@ -28,7 +28,7 @@ import time
 
 class Final_Spectrograph_Filter(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, int_time, fname):
         gr.top_block.__init__(self, "General Filter Bank", catch_exceptions=True)
 
         ##################################################
@@ -40,8 +40,8 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
         self.samp_rate = samp_rate = 6e6
         self.one_sec_display_integration = one_sec_display_integration = 1
-        self.int_time = int_time = 300
-        self.fname = "long_int"
+        self.int_time = int_time
+        self.fname = fname
         self.Window = Window = sinc
         self.HI21 = HI21 = 1420.405751768e6
         self.Bandwidth = Bandwidth = samp_rate

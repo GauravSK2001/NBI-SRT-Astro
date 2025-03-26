@@ -23,7 +23,7 @@ class PointingFrame(tk.Frame):
 
         #Initialize tracking
         self.rotor = rotor
-        if rotor.control:
+        if rotor.control is not None:
             rotor_az, rotor_el = self.rotor.control.status()
         else:
             rotor_az, rotor_el = (0, -15)
@@ -51,7 +51,7 @@ class PointingFrame(tk.Frame):
         self.az_label = tk.Label(self, text="Az:")
         self.el_label = tk.Label(self, text="El:")
 
-        self.selector_label = tk.Label(self, text="Coordinate selection:")
+        self.selector_label = tk.Label(self, text="Coordinate Selection:")
 
         self.pointing_status_label = tk.Label(self, text="Status:")
         self.pointing_message_label = tk.Label(self, textvariable=self.pointing_message_var, justify="left", anchor="w")

@@ -24,10 +24,8 @@ control = Rot2Prog()                    #Comment this line if not using physical
 #control=None                             #Comment this line if using physical rotor
 rotor = SourceTracking(control=control)
 
-dsp = PPFB()                            #Comment this line if not using detector hardware
-#dsp = None                             #Comment this line if using detector hardware
 
-detector = Detector(dsp=dsp, rotor=rotor)
+detector = Detector(rotor=rotor)
 
 
 

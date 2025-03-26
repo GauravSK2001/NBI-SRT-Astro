@@ -7,35 +7,29 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
+from Final_Spectrograph_Filter import Final_Spectrograph_Filter as PPFB
+
 import os
 
 
 class Detector():
 
-    cache_fpath = "../.cached_spectra/"
-    spectra_fpath = "../spectra/"
+    cache_fpath = "/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/"
+    spectra_fpath = "/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/spectra/"
 
-    def __init__(self, dsp, rotor):
+    def __init__(self, rotor):
         
-        # Initialize signal processing object
-        self.signal_proc = dsp
+        # Initialize rotor object
         self.rotor = rotor
 
+        self.dsp = None
 
-        #If signal processing is present, use its spectrum settings, or default values otherwise
-        if self.signal_proc is not None:
-            self.central_freq = self.signal_proc.HI21
-            self.n_bins = self.signal_proc.Vector_length
-            self.Bandwidth = self.signal_proc.Bandwidth
-            self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing/1e6-self.Bandwidth/1e6/2
-
-        else:
-            self.central_freq = 1420.405751768e6
-            self.n_bins = int(2**13)
-            self.Bandwidth = 6e6
-            self.frequency_spacing=self.Bandwidth/self.n_bins
-            self.freq = np.arange(0,self.n_bins)*self.frequency_spacing/1e6-self.Bandwidth/1e6/2
+        #Set up spectrum parameters
+        self.central_freq = 1420.405751768e6
+        self.n_bins = int(2**13)
+        self.Bandwidth = 6e6
+        self.frequency_spacing=self.Bandwidth/self.n_bins
+        self.freq = np.arange(0,self.n_bins)*self.frequency_spacing/1e6-self.Bandwidth/1e6/2
             
 
         self.interface_frame = None
@@ -124,10 +118,16 @@ class Detector():
         self.status = "active"
 
 
-        if self.signal_proc is not None:
-            print("Detector: Integrating with DSP")
+        print("Detector: Integrating with DSP")
             
-            self.signal_proc.integrate(int_time, fname)
+        self.dsp = PPFB(int_time, fname)
+
+        self.dsp.start()
+
+        onesec_display_thread = Thread(target=self.integration_display_frame.update_loop, daemon=True)
+        onesec_display_thread.start()
+
+        self.dsp.wait()
 
         
         self.status = "idle"
