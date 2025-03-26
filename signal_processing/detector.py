@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
-from Final_Spectrograph_Filter import Final_Spectrograph_Filter as PPFB
+from signal_processing.Final_Spectrograph_Filter import Final_Spectrograph_Filter as PPFB
 
 import os
 
@@ -69,10 +69,10 @@ class Detector():
         
         self.status = "idle"
 
-        if self.signal_proc is not None:
+        if self.dsp is not None:
 
-            self.signal_proc.stop()
-            self.signal_proc.wait()
+            self.dsp.stop()
+            self.dsp.wait()
 
     def save_spectrum(self, fname, int_time, rotor_params):
         print("Detector: Saving spectrum to ", fname)
@@ -82,14 +82,14 @@ class Detector():
         binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
         hdu.data = binary_data
 
-        hdu.header = self.make_header(int_time, rotor_params)
+        #hdu.header = self.make_header(int_time, rotor_params)
 
         hdu.writeto(Detector.spectra_fpath + fname + ".fits")
 
         self.interface_frame.show_saved_fname(fname)
 
-    def make_header(int_time, rotor_params):
-        hdr = fits.open("../signal_processing/header_template.fits")[0].header
+    def make_header(self, int_time, rotor_params):
+        hdr = fits.open("/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/signal_processing/header_template.fits")[0].header
 
         hdr["EXPTIME"] = int_time
 
@@ -119,15 +119,25 @@ class Detector():
 
 
         print("Detector: Integrating with DSP")
-            
-        self.dsp = PPFB(int_time, fname)
 
-        self.dsp.start()
+        self.interface_frame.set_int_message("Integrating")
+            
+
+        self.dsp = PPFB(int_time, fname)
 
         onesec_display_thread = Thread(target=self.integration_display_frame.update_loop, daemon=True)
         onesec_display_thread.start()
 
-        self.dsp.wait()
+        self.dsp.start()
+        
+        while True:
+            long_int_fsize = os.path.getsize(Detector.cache_fpath + fname)
+
+            if long_int_fsize > 0:
+
+                break
+            else:
+                time.sleep(1)
 
         
         self.status = "idle"

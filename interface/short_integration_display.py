@@ -48,7 +48,7 @@ class IntegrationDisplay(tk.Frame):
         self.axes = self.fig.add_subplot(111)
 
         self.axes.set_xlabel("Frequency [MHz]")
-        self.axes.set_xlim(np.min(self.freq), np.max(self.freq))
+        self.axes.set_xlim(np.min(self.freq)/1e6, np.max(self.freq)/1e6)
 
 
         self.axes.set_ylabel("Amplitude [SDR Counts]")
@@ -75,7 +75,10 @@ class IntegrationDisplay(tk.Frame):
 
         length=len(self.freq)
 
-        self.axes.plot(self.freq, onesec_int[-length:], "b-")
+        if len(onesec_int) == 0:
+            return None
+
+        self.axes.step(self.freq/1e6, onesec_int[-length:], "b-", where="mid")
         self.canvas.draw()
 
     def update_loop(self):

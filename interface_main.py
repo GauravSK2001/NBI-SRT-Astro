@@ -16,7 +16,7 @@ from threading import *
 root = tk.Tk()
 
 root.title("NBI SRT Interface")
-root.geometry("1188x560")
+root.geometry("1474x555")
 
 
 

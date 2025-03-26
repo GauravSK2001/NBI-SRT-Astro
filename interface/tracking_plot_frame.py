@@ -41,7 +41,7 @@ class TrackingMap(tk.Frame):
         #self.pointing_disp_label = tk.Label(self, text="Pointing and Time Display")
 
         #Create Figure and canvas with polar projection
-        self.fig = Figure(figsize=(5.5, 5.5), dpi=100)
+        self.fig = Figure(figsize=(5.4, 5.4), dpi=100)
 
         self.fig.suptitle("Telescope Pointing")
 

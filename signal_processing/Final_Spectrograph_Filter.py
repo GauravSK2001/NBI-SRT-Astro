@@ -90,6 +90,8 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
+        self.blocks_head_1 = blocks.head(gr.sizeof_float*Vector_length, int_time)
+        self.blocks_head_0 = blocks.head(gr.sizeof_float*Vector_length, 1)
         self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_int', False)
         self.blocks_file_sink_0_0.set_unbuffered(False)
         self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/'+self.fname, False)
@@ -124,8 +126,10 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.connect((self.blocks_delay_0_0_0_0_2, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0_0, 0), (self.blocks_stream_to_vector_0, 0))
+        self.connect((self.blocks_head_0, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.blocks_head_1, 0), (self.blocks_file_sink_0_0, 0))
         self.connect((self.blocks_integrate_xx_0, 0), (self.blocks_multiply_const_vxx_1, 0))
-        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_file_sink_0_0, 0))
+        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_head_1, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.blocks_multiply_const_vxx_0_0_0, 0), (self.blocks_add_xx_0, 2))
@@ -136,7 +140,7 @@ class Final_Spectrograph_Filter(gr.top_block):
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0), (self.blocks_add_xx_0, 8))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0), (self.blocks_add_xx_0, 7))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0), (self.blocks_add_xx_0, 9))
-        self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_head_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0, 0))
@@ -229,13 +233,8 @@ class Final_Spectrograph_Filter(gr.top_block):
 
     def set_int_time(self, int_time):
         self.int_time = int_time
+        self.blocks_head_1.set_length(self.int_time)
         self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
-
-    def set_fname(self, fname):
-        self.fname = fname
-    
-    def get_fname(self, fname):
-        return self.fname
 
     def get_Window(self):
         return self.Window
@@ -266,23 +265,6 @@ class Final_Spectrograph_Filter(gr.top_block):
     def set_Bandwidth(self, Bandwidth):
         self.Bandwidth = Bandwidth
 
-    def integrate(self, int_time, fname):
-
-        self.set_int_time(int_time)
-        self.set_fname(fname)
-
-        #def sig_handler(sig=None, frame=None):
-        #    self.stop()
-        #    self.wait()
-
-        #    sys.exit(0)
-
-        #signal.signal(signal.SIGINT, sig_handler)
-        #signal.signal(signal.SIGTERM, sig_handler)
-
-        self.start()
-
-        self.wait()
 
 
 
