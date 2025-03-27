@@ -82,21 +82,32 @@ class Detector():
         binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
         hdu.data = binary_data
 
-        #hdu.header = self.make_header(int_time, rotor_params)
+        crbin = len(binary_data)//2
+
+        hdu.header = self.make_header(int_time, rotor_params, crbin)
 
         hdu.writeto(Detector.spectra_fpath + fname + ".fits")
 
         self.interface_frame.show_saved_fname(fname)
 
-    def make_header(self, int_time, rotor_params):
+    def make_header(self, int_time, rotor_params, crbin):
         hdr = fits.open("/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/signal_processing/header_template.fits")[0].header
+
+        print(rotor_params)
 
         hdr["EXPTIME"] = int_time
 
+        hdr["CRBIN1"] = crbin
+
         hdr["HIERARCH OBS START"] = time.strftime("%d-%m-%YT%H:%M:%S", rotor_params[0])
 
-        hdr["HIERARCH GAL LONG"] = rotor_params[1].l.deg
-        hdr["HIERARCH GAL LAT"] = rotor_params[1].b.deg
+
+        if rotor_params[1] is None:
+            hdr["HIERARCH GAL LONG"] = -999
+            hdr["HIERARCH GAL LAT"] = -999
+        else:
+            hdr["HIERARCH GAL LONG"] = rotor_params[1].l.deg
+            hdr["HIERARCH GAL LAT"] = rotor_params[1].b.deg
 
         hdr["HIERARCH AZ START"] = rotor_params[2].az.deg
         hdr["HIERARCH EL START"] = rotor_params[2].el.deg
@@ -133,7 +144,7 @@ class Detector():
         while True:
             long_int_fsize = os.path.getsize(Detector.cache_fpath + fname)
 
-            if long_int_fsize > 0:
+            if long_int_fsize > 0 or self.status == "idle":
 
                 break
             else:

@@ -108,6 +108,9 @@ class IntegrationFrame(tk.Frame):
             try:
                 t = int(self.int_time_var.get())
 
+                if t <= 0:
+                    raise ValueError
+
             except ValueError:
                 message = "Invalid numeric values for integration time"
                 

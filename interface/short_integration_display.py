@@ -48,7 +48,7 @@ class IntegrationDisplay(tk.Frame):
         self.axes = self.fig.add_subplot(111)
 
         self.axes.set_xlabel("Frequency [MHz]")
-        self.axes.set_xlim(np.min(self.freq)/1e6, np.max(self.freq)/1e6)
+        self.axes.set_xlim(np.min((self.freq + self.central_freq))/1e6, np.max((self.freq + self.central_freq))/1e6)
 
 
         self.axes.set_ylabel("Amplitude [SDR Counts]")
@@ -78,7 +78,7 @@ class IntegrationDisplay(tk.Frame):
         if len(onesec_int) == 0:
             return None
 
-        self.axes.step(self.freq/1e6, onesec_int[-length:], "b-", where="mid")
+        self.axes.step((self.freq + self.central_freq)/1e6, onesec_int[-length:], "b-", where="mid")
         self.canvas.draw()
 
     def update_loop(self):
@@ -88,7 +88,6 @@ class IntegrationDisplay(tk.Frame):
 
         while self.detector.status =="active":
             self.update_plot()
-            print(f"Interface: Number of threads active: {active_count()}")
             time.sleep(0.75)
 
     
