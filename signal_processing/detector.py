@@ -113,15 +113,16 @@ class Detector():
             hdr["HIERARCH AZ START"] = -999
             hdr["HIERARCH EL START"] = -999
         else:
+            print(rotor_params[2])
             hdr["HIERARCH AZ START"] = rotor_params[2].az.deg
-            hdr["HIERARCH EL START"] = rotor_params[2].el.deg
+            hdr["HIERARCH EL START"] = rotor_params[2].alt.deg
 
         if rotor_params[3] is None:
             hdr["HIERARCH AZ END"] = -999
             hdr["HIERARCH EL END"] = -999
         else:
             hdr["HIERARCH AZ END"] = rotor_params[3].az.deg
-            hdr["HIERARCH EL END"] = rotor_params[3].el.deg
+            hdr["HIERARCH EL END"] = rotor_params[3].alt.deg
 
         return hdr
         

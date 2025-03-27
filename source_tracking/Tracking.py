@@ -405,6 +405,7 @@ class SourceTracking:
             self.update_stored_positions(az_cmd, el_cmd, effective_az)
             
             print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
+            self.update_gui_message(f"Slewing to Az={az_cmd}°, El={el_cmd}°")
             self.check_if_reached_target(az_cmd, el_cmd)
 
             if home:
