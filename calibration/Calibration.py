@@ -12,7 +12,7 @@ class Atmospheric_effects:
     
     
     def __init__(self,air_temperature):
-        self.optical_depth=0.005 #optical depth of the atmosphere standard value
+        self.optical_depth=3.4e-2 *np.log(10)/10 #optical depth of the atmosphere standard value
         self.air_temperature= air_temperature *u.K #temperature of the air in kelvin
         
     def slant_path_optical_depth(self,elevation_angle):

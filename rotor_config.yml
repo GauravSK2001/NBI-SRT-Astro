@@ -1,0 +1,9 @@
+rotor:
+  port: "/dev/cu.usbserial-A10PDKDD"
+  baudrate: 115200
+  pulses_per_degree: 10
+  az_min: 0
+  az_max: 360
+  el_min: 0
+  el_max: 360
+
