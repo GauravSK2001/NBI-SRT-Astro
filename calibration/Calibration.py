@@ -12,12 +12,16 @@ class Atmospheric_effects:
     
     
     def __init__(self,air_temperature):
-        self.optical_depth=0.005 #optical depth of the atmosphere standard value
+        self.optical_depth=3.4e-2 *np.log(10)/10 #optical depth of the atmosphere standard value
         self.air_temperature= air_temperature *u.K #temperature of the air in kelvin
         
     def slant_path_optical_depth(self,elevation_angle):
         theta= np.pi/2 - np.deg2rad(elevation_angle).value
-        tau= self.optical_depth/np.cos(theta)
+        a=0.1500
+        b=np.deg2rad(3.885).value
+        c=1.253
+        airmass=(np.sin(elevation_angle)-a*(elevation_angle+b)**(-c))**-1
+        tau= self.optical_depth*airmass
         return tau
     
     def atmospheric_emission(self,elevation_angle):

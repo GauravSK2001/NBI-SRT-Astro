@@ -2,28 +2,31 @@ import time
 from astropy.coordinates import SkyCoord, EarthLocation, AltAz
 from astropy.time import Time
 from astropy import units as u
-
+import yaml,os
 
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
 
     def __init__(self, control=None):
+        # Load configuration from YAML file
+        config_path = os.path.join(os.path.dirname(__file__), "NBI-SRT-Astro", "telescope_config.yml")
+        with open(config_path, "r") as file:
+            config = yaml.safe_load(file)
         # Observatory location parameters 
-        self.LONGITUDE = 12.556672
-        self.LATITUDE = 55.701223
-        self.HEIGHT = 0  # in meters
+        self.LONGITUDE = config.get("longitude", 12.556680)  
+        self.LATITUDE = config.get("latitude",  55.701227) 
+        self.HEIGHT = config.get("height", 0)  # Default to 0 m if not found
 
         # Optional refraction correction parameters
-        self.PRESSURE = None
-        self.TEMPERATURE = None
-        self.HUMIDITY = None
-        self.WAVELENGTH = 21.106  # cm for 1.4 GHz (21-cm line)
-
+        self.PRESSURE = config.get("pressure", 1013.25)  # Default to 1013.25 hPa if not found
+        self.TEMPERATURE = config.get("temperature", 273.15)  # Default to 273.15 K if not found
+        self.HUMIDITY = config.get("humidity", None)  # Default to none if not found
+        self.WAVELENGTH = config.get("wavelength", 21.106)  # Default to 21.106 cm if not found
         # Precompute the observer location
         self.obs_loc = EarthLocation(
             lat=self.LATITUDE * u.deg,
             lon=self.LONGITUDE * u.deg,
-            height=self.HEIGHT * u.m
+            height=self.HEIGHT * u.m,
         )
 
         # Tracking state variables
@@ -32,8 +35,8 @@ class SourceTracking:
         self.current_telescope_azel = None   # Last commanded (rounded) AltAz of the telescope
 
         # Allowed elevation range
-        self.min_el = 0
-        self.max_el = 90
+        self.min_el = self.config.get("min_el", 0)  # Default to 0° if not found
+        self.max_el = self.config.get("max_el", 90)  # Default to 90° if not found
 
         # Hardware control interface
         self.control = control
