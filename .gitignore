@@ -14,3 +14,4 @@ calibration/my_test_notebook.ipynb
 calibration/calibration_test_notebook.ipynb
 .cached_spectra/*
 spectra/*
+calibration/test_calibrations.ipynb
