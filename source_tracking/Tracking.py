@@ -9,7 +9,7 @@ class SourceTracking:
 
     def __init__(self, control=None):
         # Load configuration from YAML file
-        config_path = os.path.join(os.path.dirname(__file__), "NBI-SRT-Astro", "telescope_config.yml")
+        config_path = os.path.join(os.path.dirname(__file__),"../telescope_config.yml")
         with open(config_path, "r") as file:
             config = yaml.safe_load(file)
         # Observatory location parameters 
@@ -35,8 +35,8 @@ class SourceTracking:
         self.current_telescope_azel = None   # Last commanded (rounded) AltAz of the telescope
 
         # Allowed elevation range
-        self.min_el = self.config.get("min_el", 0)  # Default to 0° if not found
-        self.max_el = self.config.get("max_el", 90)  # Default to 90° if not found
+        self.min_el = config.get("min_el", 0)  # Default to 0° if not found
+        self.max_el = config.get("max_el", 90)  # Default to 90° if not found
 
         # Hardware control interface
         self.control = control
