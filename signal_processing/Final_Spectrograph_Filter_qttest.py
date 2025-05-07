@@ -11,12 +11,15 @@
 
 from PyQt5 import Qt
 from gnuradio import qtgui
+import os
+import sys
+sys.path.append(os.environ.get('GRC_HIER_PATH', os.path.expanduser('~/.grc_gnuradio')))
+
+from PPFB import PPFB  # grc-generated hier_block
 from gnuradio import blocks
-from gnuradio import fft
-from gnuradio.fft import window
 from gnuradio import gr
 from gnuradio.filter import firdes
-import sys
+from gnuradio.fft import window
 import signal
 from PyQt5 import Qt
 from argparse import ArgumentParser
@@ -64,14 +67,10 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.Vector_length = Vector_length = 2**13
-        self.Taps = Taps = 10
-        self.sinc_sample_locations = sinc_sample_locations = np.arange(-np.pi*Taps/2.0, np.pi*Taps/2.0, np.pi/Vector_length)
-        self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
-        self.samp_rate = samp_rate = 6e6
+        self.samp_rate = samp_rate = 10e6
         self.one_sec_display_integration = one_sec_display_integration = 1
         self.int_time = int_time = 300
-        self.Window = Window = sinc
+        self.Vector_length = Vector_length = 2**13
         self.HI21 = HI21 = 1420.405751768e6
         self.Bandwidth = Bandwidth = samp_rate
 
@@ -134,99 +133,39 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.osmosdr_source_1.set_bb_gain(12, 0)
         self.osmosdr_source_1.set_antenna('', 0)
         self.osmosdr_source_1.set_bandwidth(0, 0)
-        self.fft_vxx_0 = fft.fft_vcc(Vector_length, True, window.hanning(Vector_length), True, 6)
-        self.blocks_stream_to_vector_0_0_0_0_0_2_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0_0_2 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0_0_1_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0_0_1 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_multiply_const_vxx_1 = blocks.multiply_const_vff(np.ones(Vector_length)/int_time)
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2_0 = blocks.multiply_const_vcc(Window[9*Vector_length:10*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2 = blocks.multiply_const_vcc(Window[7*Vector_length:8*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1_0 = blocks.multiply_const_vcc(Window[8*Vector_length:9*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1 = blocks.multiply_const_vcc(Window[6*Vector_length:7*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_0 = blocks.multiply_const_vcc(Window[5*Vector_length:6*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0 = blocks.multiply_const_vcc(Window[4*Vector_length:5*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0 = blocks.multiply_const_vcc(Window[3*Vector_length:4*Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0 = blocks.multiply_const_vcc(Window[2*Vector_length:3*Vector_length])
-        self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc(Window[Vector_length:2*Vector_length])
-        self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', True)
+        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', False)
         self.blocks_file_sink_0_0.set_unbuffered(False)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int', True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int', False)
         self.blocks_file_sink_0.set_unbuffered(False)
-        self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
-        self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
-        self.blocks_delay_0_0_0_0_2 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
-        self.blocks_delay_0_0_0_0_1_0 = blocks.delay(gr.sizeof_gr_complex*1, (8*Vector_length))
-        self.blocks_delay_0_0_0_0_1 = blocks.delay(gr.sizeof_gr_complex*1, (6*Vector_length))
-        self.blocks_delay_0_0_0_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (5*Vector_length))
-        self.blocks_delay_0_0_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (4*Vector_length))
-        self.blocks_delay_0_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (3*Vector_length))
-        self.blocks_delay_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (2*Vector_length))
-        self.blocks_delay_0 = blocks.delay(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_complex_to_mag_squared_1 = blocks.complex_to_mag_squared(Vector_length)
-        self.blocks_add_xx_0 = blocks.add_vcc(Vector_length)
+        self.PPFB_0 = PPFB(
+            Vector_length=2**13,
+        )
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.blocks_add_xx_0, 0), (self.fft_vxx_0, 0))
+        self.connect((self.PPFB_0, 0), (self.blocks_complex_to_mag_squared_1, 0))
         self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0, 0))
         self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0_0, 0))
-        self.connect((self.blocks_delay_0, 0), (self.blocks_stream_to_vector_0_0, 0))
-        self.connect((self.blocks_delay_0_0, 0), (self.blocks_stream_to_vector_0_0_0, 0))
-        self.connect((self.blocks_delay_0_0_0, 0), (self.blocks_stream_to_vector_0_0_0_0, 0))
-        self.connect((self.blocks_delay_0_0_0_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0, 0))
-        self.connect((self.blocks_delay_0_0_0_0_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_0, 0))
-        self.connect((self.blocks_delay_0_0_0_0_1, 0), (self.blocks_stream_to_vector_0_0_0_0_0_1, 0))
-        self.connect((self.blocks_delay_0_0_0_0_1_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_1_0, 0))
-        self.connect((self.blocks_delay_0_0_0_0_2, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2, 0))
-        self.connect((self.blocks_delay_0_0_0_0_2_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0))
-        self.connect((self.blocks_delay_0_0_0_0_2_0_0, 0), (self.blocks_stream_to_vector_0, 0))
         self.connect((self.blocks_integrate_xx_0, 0), (self.blocks_multiply_const_vxx_1, 0))
         self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_file_sink_0_0, 0))
         self.connect((self.blocks_integrate_xx_0_0, 0), (self.qtgui_vector_sink_f_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
-        self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0, 0), (self.blocks_add_xx_0, 2))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0, 0), (self.blocks_add_xx_0, 3))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0, 0), (self.blocks_add_xx_0, 4))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_0, 0), (self.blocks_add_xx_0, 5))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_1, 0), (self.blocks_add_xx_0, 6))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0), (self.blocks_add_xx_0, 8))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0), (self.blocks_add_xx_0, 7))
-        self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0), (self.blocks_add_xx_0, 9))
         self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_file_sink_0, 0))
-        self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0_1, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_1, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0_1_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0_2, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0))
-        self.connect((self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0), (self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0))
-        self.connect((self.fft_vxx_0, 0), (self.blocks_complex_to_mag_squared_1, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_1, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_1_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2_0, 0))
-        self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2_0_0, 0))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 0))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 7))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 3))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 9))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 6))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 4))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 2))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 8))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 1))
+        self.connect((self.osmosdr_source_1, 0), (self.PPFB_0, 5))
 
 
     def closeEvent(self, event):
@@ -236,56 +175,6 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.wait()
 
         event.accept()
-
-    def get_Vector_length(self):
-        return self.Vector_length
-
-    def set_Vector_length(self, Vector_length):
-        self.Vector_length = Vector_length
-        self.set_sinc_sample_locations(np.arange(-np.pi*self.Taps/2.0, np.pi*self.Taps/2.0, np.pi/self.Vector_length))
-        self.blocks_delay_0.set_dly(int(self.Vector_length))
-        self.blocks_delay_0_0.set_dly(int((2*self.Vector_length)))
-        self.blocks_delay_0_0_0.set_dly(int((3*self.Vector_length)))
-        self.blocks_delay_0_0_0_0.set_dly(int((4*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_0.set_dly(int((5*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_1.set_dly(int((6*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_1_0.set_dly(int((8*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_2.set_dly(int((7*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_2_0.set_dly(int((7*self.Vector_length)))
-        self.blocks_delay_0_0_0_0_2_0_0.set_dly(int((0*self.Vector_length)))
-        self.blocks_multiply_const_vxx_0.set_k(self.Window[:self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0.set_k(self.Window[self.Vector_length:2*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0.set_k(self.Window[2*self.Vector_length:3*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0.set_k(self.Window[3*self.Vector_length:4*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0.set_k(self.Window[4*self.Vector_length:5*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_0.set_k(self.Window[5*self.Vector_length:6*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1.set_k(self.Window[6*self.Vector_length:7*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1_0.set_k(self.Window[8*self.Vector_length:9*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2.set_k(self.Window[7*self.Vector_length:8*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2_0.set_k(self.Window[9*self.Vector_length:10*self.Vector_length])
-        self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
-
-    def get_Taps(self):
-        return self.Taps
-
-    def set_Taps(self, Taps):
-        self.Taps = Taps
-        self.set_sinc_sample_locations(np.arange(-np.pi*self.Taps/2.0, np.pi*self.Taps/2.0, np.pi/self.Vector_length))
-
-    def get_sinc_sample_locations(self):
-        return self.sinc_sample_locations
-
-    def set_sinc_sample_locations(self, sinc_sample_locations):
-        self.sinc_sample_locations = sinc_sample_locations
-        self.set_sinc(np.sinc(self.sinc_sample_locations/np.pi))
-
-    def get_sinc(self):
-        return self.sinc
-
-    def set_sinc(self, sinc):
-        self.sinc = sinc
-        self.set_Window(self.sinc)
-        self.set_sinc(np.sinc(self.sinc_sample_locations/np.pi))
 
     def get_samp_rate(self):
         return self.samp_rate
@@ -308,21 +197,12 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.int_time = int_time
         self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
 
-    def get_Window(self):
-        return self.Window
+    def get_Vector_length(self):
+        return self.Vector_length
 
-    def set_Window(self, Window):
-        self.Window = Window
-        self.blocks_multiply_const_vxx_0.set_k(self.Window[:self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0.set_k(self.Window[self.Vector_length:2*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0.set_k(self.Window[2*self.Vector_length:3*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0.set_k(self.Window[3*self.Vector_length:4*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0.set_k(self.Window[4*self.Vector_length:5*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_0.set_k(self.Window[5*self.Vector_length:6*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1.set_k(self.Window[6*self.Vector_length:7*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_1_0.set_k(self.Window[8*self.Vector_length:9*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2.set_k(self.Window[7*self.Vector_length:8*self.Vector_length])
-        self.blocks_multiply_const_vxx_0_0_0_0_0_2_0.set_k(self.Window[9*self.Vector_length:10*self.Vector_length])
+    def set_Vector_length(self, Vector_length):
+        self.Vector_length = Vector_length
+        self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
 
     def get_HI21(self):
         return self.HI21
