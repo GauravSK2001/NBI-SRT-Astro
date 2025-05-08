@@ -140,11 +140,11 @@ class Detector():
 
         print("Detector: Integrating with DSP")
 
-        self.interface_frame.set_int_message("Integrating")
+        
             
 
-        self.dsp = PPFB(int_time, fname)
-
+        self.dsp = PPFB(fname, int_time)
+        self.interface_frame.set_int_message("Integrating")
         onesec_display_thread = Thread(target=self.integration_display_frame.update_loop, daemon=True)
         onesec_display_thread.start()
 
