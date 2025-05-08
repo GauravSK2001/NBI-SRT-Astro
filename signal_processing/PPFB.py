@@ -5,8 +5,7 @@
 # SPDX-License-Identifier: GPL-3.0
 #
 # GNU Radio Python Flow Graph
-# Title: General Filter Bank
-# Author: gauravsenthilkumar
+# Title: Not titled yet
 # GNU Radio version: 3.10.10.0
 
 from PyQt5 import Qt
@@ -29,12 +28,12 @@ import sip
 
 
 
-class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
+class PPFB(gr.top_block, Qt.QWidget):
 
     def __init__(self):
-        gr.top_block.__init__(self, "General Filter Bank", catch_exceptions=True)
+        gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
-        self.setWindowTitle("General Filter Bank")
+        self.setWindowTitle("Not titled yet")
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
@@ -52,7 +51,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.top_grid_layout = Qt.QGridLayout()
         self.top_layout.addLayout(self.top_grid_layout)
 
-        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter_qttest")
+        self.settings = Qt.QSettings("GNU Radio", "PPFB")
 
         try:
             geometry = self.settings.value("geometry")
@@ -72,33 +71,35 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.one_sec_display_integration = one_sec_display_integration = 1
         self.int_time = int_time = 300
         self.Window = Window = sinc
+        self.PFB_bandwidth_vector_length = PFB_bandwidth_vector_length = 7e3
         self.HI21 = HI21 = 1420.405751768e6
+        self.Frequency_Step_Size = Frequency_Step_Size = samp_rate/Vector_length
         self.Bandwidth = Bandwidth = samp_rate
 
         ##################################################
         # Blocks
         ##################################################
 
-        self.qtgui_vector_sink_f_0 = qtgui.vector_sink_f(
+        self.qtgui_vector_sink_f_0_0_0 = qtgui.vector_sink_f(
             Vector_length,
-            0,
-            1.0,
-            "x-Axis",
-            "y-Axis",
-            "",
+            ((HI21-samp_rate/2)/1e6),
+            ((Frequency_Step_Size)/1e6),
+            "Frequency [MHz]",
+            "Power",
+            "Power Spectrum",
             1, # Number of inputs
             None # parent
         )
-        self.qtgui_vector_sink_f_0.set_update_time(0.10)
-        self.qtgui_vector_sink_f_0.set_y_axis((-140), 10)
-        self.qtgui_vector_sink_f_0.enable_autoscale(True)
-        self.qtgui_vector_sink_f_0.enable_grid(False)
-        self.qtgui_vector_sink_f_0.set_x_axis_units("")
-        self.qtgui_vector_sink_f_0.set_y_axis_units("")
-        self.qtgui_vector_sink_f_0.set_ref_level(0)
+        self.qtgui_vector_sink_f_0_0_0.set_update_time(0.10)
+        self.qtgui_vector_sink_f_0_0_0.set_y_axis(0, 10)
+        self.qtgui_vector_sink_f_0_0_0.enable_autoscale(True)
+        self.qtgui_vector_sink_f_0_0_0.enable_grid(True)
+        self.qtgui_vector_sink_f_0_0_0.set_x_axis_units("MHz")
+        self.qtgui_vector_sink_f_0_0_0.set_y_axis_units("")
+        self.qtgui_vector_sink_f_0_0_0.set_ref_level(0)
 
 
-        labels = ['', '', '', '', '',
+        labels = ['ztomag2', 'Multiply conjugate', 'just mag', '', '',
             '', '', '', '', '']
         widths = [1, 1, 1, 1, 1,
             1, 1, 1, 1, 1]
@@ -109,17 +110,56 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
         for i in range(1):
             if len(labels[i]) == 0:
-                self.qtgui_vector_sink_f_0.set_line_label(i, "Data {0}".format(i))
+                self.qtgui_vector_sink_f_0_0_0.set_line_label(i, "Data {0}".format(i))
             else:
-                self.qtgui_vector_sink_f_0.set_line_label(i, labels[i])
-            self.qtgui_vector_sink_f_0.set_line_width(i, widths[i])
-            self.qtgui_vector_sink_f_0.set_line_color(i, colors[i])
-            self.qtgui_vector_sink_f_0.set_line_alpha(i, alphas[i])
+                self.qtgui_vector_sink_f_0_0_0.set_line_label(i, labels[i])
+            self.qtgui_vector_sink_f_0_0_0.set_line_width(i, widths[i])
+            self.qtgui_vector_sink_f_0_0_0.set_line_color(i, colors[i])
+            self.qtgui_vector_sink_f_0_0_0.set_line_alpha(i, alphas[i])
 
-        self._qtgui_vector_sink_f_0_win = sip.wrapinstance(self.qtgui_vector_sink_f_0.qwidget(), Qt.QWidget)
-        self.top_layout.addWidget(self._qtgui_vector_sink_f_0_win)
+        self._qtgui_vector_sink_f_0_0_0_win = sip.wrapinstance(self.qtgui_vector_sink_f_0_0_0.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_vector_sink_f_0_0_0_win)
+        self.qtgui_vector_sink_f_0_0 = qtgui.vector_sink_f(
+            Vector_length,
+            ((-samp_rate/2)/1e6),
+            ((Frequency_Step_Size)/1e6),
+            "Frequency [MHz]",
+            "Power log",
+            "Power Spectrum",
+            1, # Number of inputs
+            None # parent
+        )
+        self.qtgui_vector_sink_f_0_0.set_update_time(0.10)
+        self.qtgui_vector_sink_f_0_0.set_y_axis(0, 10)
+        self.qtgui_vector_sink_f_0_0.enable_autoscale(True)
+        self.qtgui_vector_sink_f_0_0.enable_grid(True)
+        self.qtgui_vector_sink_f_0_0.set_x_axis_units("MHz")
+        self.qtgui_vector_sink_f_0_0.set_y_axis_units("")
+        self.qtgui_vector_sink_f_0_0.set_ref_level(0)
+
+
+        labels = ['ztomag2', 'Multiply conjugate', 'just mag', '', '',
+            '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+            "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0, 1.0]
+
+        for i in range(1):
+            if len(labels[i]) == 0:
+                self.qtgui_vector_sink_f_0_0.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_vector_sink_f_0_0.set_line_label(i, labels[i])
+            self.qtgui_vector_sink_f_0_0.set_line_width(i, widths[i])
+            self.qtgui_vector_sink_f_0_0.set_line_color(i, colors[i])
+            self.qtgui_vector_sink_f_0_0.set_line_alpha(i, alphas[i])
+
+        self._qtgui_vector_sink_f_0_0_win = sip.wrapinstance(self.qtgui_vector_sink_f_0_0.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_vector_sink_f_0_0_win)
         self.osmosdr_source_1 = osmosdr.source(
-            args="numchan=" + str(1) + " " + 'airspy=0,bias=0,pack=0'
+            args="numchan=" + str(1) + " " + 'airspy=0,bias=1,pack=0'
         )
         self.osmosdr_source_1.set_clock_source('external', 0)
         self.osmosdr_source_1.set_time_source('external', 0)
@@ -129,9 +169,9 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.osmosdr_source_1.set_dc_offset_mode(0, 0)
         self.osmosdr_source_1.set_iq_balance_mode(0, 0)
         self.osmosdr_source_1.set_gain_mode(False, 0)
-        self.osmosdr_source_1.set_gain(0, 0)
-        self.osmosdr_source_1.set_if_gain(12, 0)
-        self.osmosdr_source_1.set_bb_gain(12, 0)
+        self.osmosdr_source_1.set_gain(20, 0)
+        self.osmosdr_source_1.set_if_gain(0, 0)
+        self.osmosdr_source_1.set_bb_gain(0, 0)
         self.osmosdr_source_1.set_antenna('', 0)
         self.osmosdr_source_1.set_bandwidth(0, 0)
         self.fft_vxx_0 = fft.fft_vcc(Vector_length, True, window.hanning(Vector_length), True, 6)
@@ -145,6 +185,8 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_stream_to_vector_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
+        self.blocks_nlog10_ff_1_0 = blocks.nlog10_ff(1, Vector_length, 0)
+        self.blocks_multiply_const_vxx_1_0 = blocks.multiply_const_vff(np.ones(Vector_length)/one_sec_display_integration)
         self.blocks_multiply_const_vxx_1 = blocks.multiply_const_vff(np.ones(Vector_length)/int_time)
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0 = blocks.multiply_const_vcc(Window[9*Vector_length:10*Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2 = blocks.multiply_const_vcc(Window[7*Vector_length:8*Vector_length])
@@ -158,9 +200,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
         self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', True)
-        self.blocks_file_sink_0_0.set_unbuffered(False)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int', True)
+        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/calibration/radio_tests/20_03/plane', False)
         self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
         self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
@@ -193,8 +233,8 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_delay_0_0_0_0_2_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0_0, 0), (self.blocks_stream_to_vector_0, 0))
         self.connect((self.blocks_integrate_xx_0, 0), (self.blocks_multiply_const_vxx_1, 0))
-        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_file_sink_0_0, 0))
-        self.connect((self.blocks_integrate_xx_0_0, 0), (self.qtgui_vector_sink_f_0, 0))
+        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_multiply_const_vxx_1_0, 0))
+        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_nlog10_ff_1_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.blocks_multiply_const_vxx_0_0_0, 0), (self.blocks_add_xx_0, 2))
@@ -206,6 +246,8 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0), (self.blocks_add_xx_0, 7))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0), (self.blocks_add_xx_0, 9))
         self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.blocks_multiply_const_vxx_1_0, 0), (self.qtgui_vector_sink_f_0_0_0, 0))
+        self.connect((self.blocks_nlog10_ff_1_0, 0), (self.qtgui_vector_sink_f_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0, 0))
@@ -230,7 +272,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
 
     def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "Final_Spectrograph_Filter_qttest")
+        self.settings = Qt.QSettings("GNU Radio", "PPFB")
         self.settings.setValue("geometry", self.saveGeometry())
         self.stop()
         self.wait()
@@ -242,6 +284,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
     def set_Vector_length(self, Vector_length):
         self.Vector_length = Vector_length
+        self.set_Frequency_Step_Size(self.samp_rate/self.Vector_length)
         self.set_sinc_sample_locations(np.arange(-np.pi*self.Taps/2.0, np.pi*self.Taps/2.0, np.pi/self.Vector_length))
         self.blocks_delay_0.set_dly(int(self.Vector_length))
         self.blocks_delay_0_0.set_dly(int((2*self.Vector_length)))
@@ -264,6 +307,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0_0_0_0_0_2.set_k(self.Window[7*self.Vector_length:8*self.Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0.set_k(self.Window[9*self.Vector_length:10*self.Vector_length])
         self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
+        self.blocks_multiply_const_vxx_1_0.set_k(np.ones(self.Vector_length)/self.one_sec_display_integration)
 
     def get_Taps(self):
         return self.Taps
@@ -293,13 +337,17 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
         self.set_Bandwidth(self.samp_rate)
+        self.set_Frequency_Step_Size(self.samp_rate/self.Vector_length)
         self.osmosdr_source_1.set_sample_rate(self.samp_rate)
+        self.qtgui_vector_sink_f_0_0.set_x_axis(((-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+        self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
 
     def get_one_sec_display_integration(self):
         return self.one_sec_display_integration
 
     def set_one_sec_display_integration(self, one_sec_display_integration):
         self.one_sec_display_integration = one_sec_display_integration
+        self.blocks_multiply_const_vxx_1_0.set_k(np.ones(self.Vector_length)/self.one_sec_display_integration)
 
     def get_int_time(self):
         return self.int_time
@@ -324,12 +372,27 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0_0_0_0_0_2.set_k(self.Window[7*self.Vector_length:8*self.Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0.set_k(self.Window[9*self.Vector_length:10*self.Vector_length])
 
+    def get_PFB_bandwidth_vector_length(self):
+        return self.PFB_bandwidth_vector_length
+
+    def set_PFB_bandwidth_vector_length(self, PFB_bandwidth_vector_length):
+        self.PFB_bandwidth_vector_length = PFB_bandwidth_vector_length
+
     def get_HI21(self):
         return self.HI21
 
     def set_HI21(self, HI21):
         self.HI21 = HI21
         self.osmosdr_source_1.set_center_freq(self.HI21, 0)
+        self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+
+    def get_Frequency_Step_Size(self):
+        return self.Frequency_Step_Size
+
+    def set_Frequency_Step_Size(self, Frequency_Step_Size):
+        self.Frequency_Step_Size = Frequency_Step_Size
+        self.qtgui_vector_sink_f_0_0.set_x_axis(((-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
+        self.qtgui_vector_sink_f_0_0_0.set_x_axis(((self.HI21-self.samp_rate/2)/1e6), ((self.Frequency_Step_Size)/1e6))
 
     def get_Bandwidth(self):
         return self.Bandwidth
@@ -340,7 +403,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
 
 
-def main(top_block_cls=Final_Spectrograph_Filter_qttest, options=None):
+def main(top_block_cls=PPFB, options=None):
 
     qapp = Qt.QApplication(sys.argv)
 
