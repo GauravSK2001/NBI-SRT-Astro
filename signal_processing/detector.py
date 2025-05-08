@@ -159,7 +159,7 @@ class Detector():
             else:
                 time.sleep(1)
 
-        
+        self.dsp = None
         self.status = "idle"
         self.interface_frame.set_int_message("Integration Complete")
             
