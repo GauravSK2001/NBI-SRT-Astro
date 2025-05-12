@@ -1,9 +1,9 @@
 longitude: 12.556680
 latitude: 55.701227
 height: 100 
-pressure: None
-temperature: None
-humidity: None
+pressure: 0
+temperature: 0
+humidity: 0
 wavelength: 21.106
 min_el: 0
 max_el: 90

@@ -68,11 +68,11 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.Taps = Taps = 10
         self.sinc_sample_locations = sinc_sample_locations = np.arange(-np.pi*Taps/2.0, np.pi*Taps/2.0, np.pi/Vector_length)
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
-        self.samp_rate = samp_rate = 6e6
+        self.samp_rate = samp_rate = 10e6
         self.one_sec_display_integration = one_sec_display_integration = 1
         self.int_time = int_time = 300
         self.Window = Window = sinc
-        self.HI21 = HI21 = 1420.405751768e6
+        self.HI21 = HI21 = 1420.405751768e6+2e6
         self.Bandwidth = Bandwidth = samp_rate
 
         ##################################################
@@ -81,8 +81,8 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
         self.qtgui_vector_sink_f_0 = qtgui.vector_sink_f(
             Vector_length,
-            0,
-            1.0,
+            ((HI21- samp_rate/2)/1e6),
+            ((samp_rate/Vector_length)/1e6),
             "x-Axis",
             "y-Axis",
             "",
@@ -145,7 +145,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_stream_to_vector_0_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
         self.blocks_stream_to_vector_0 = blocks.stream_to_vector(gr.sizeof_gr_complex*1, Vector_length)
-        self.blocks_multiply_const_vxx_1 = blocks.multiply_const_vff(np.ones(Vector_length)/int_time)
+        self.blocks_nlog10_ff_1 = blocks.nlog10_ff(1, Vector_length, 0)
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0 = blocks.multiply_const_vcc(Window[9*Vector_length:10*Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2 = blocks.multiply_const_vcc(Window[7*Vector_length:8*Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_1_0 = blocks.multiply_const_vcc(Window[8*Vector_length:9*Vector_length])
@@ -157,11 +157,6 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0_0 = blocks.multiply_const_vcc(Window[Vector_length:2*Vector_length])
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc(Window[:Vector_length])
         self.blocks_integrate_xx_0_0 = blocks.integrate_ff((int(one_sec_display_integration*samp_rate/Vector_length)), Vector_length)
-        self.blocks_integrate_xx_0 = blocks.integrate_ff((int(int_time*samp_rate/Vector_length)), Vector_length)
-        self.blocks_file_sink_0_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/onesec_test', True)
-        self.blocks_file_sink_0_0.set_unbuffered(False)
-        self.blocks_file_sink_0 = blocks.file_sink(gr.sizeof_float*Vector_length, '/Users/gauravsenthilkumar/repositories/NBI-SRT-Astro/.cached_spectra/long_int', True)
-        self.blocks_file_sink_0.set_unbuffered(False)
         self.blocks_delay_0_0_0_0_2_0_0 = blocks.delay(gr.sizeof_gr_complex*1, (0*Vector_length))
         self.blocks_delay_0_0_0_0_2_0 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
         self.blocks_delay_0_0_0_0_2 = blocks.delay(gr.sizeof_gr_complex*1, (7*Vector_length))
@@ -180,7 +175,6 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         # Connections
         ##################################################
         self.connect((self.blocks_add_xx_0, 0), (self.fft_vxx_0, 0))
-        self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0, 0))
         self.connect((self.blocks_complex_to_mag_squared_1, 0), (self.blocks_integrate_xx_0_0, 0))
         self.connect((self.blocks_delay_0, 0), (self.blocks_stream_to_vector_0_0, 0))
         self.connect((self.blocks_delay_0_0, 0), (self.blocks_stream_to_vector_0_0_0, 0))
@@ -192,9 +186,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_delay_0_0_0_0_2, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0, 0), (self.blocks_stream_to_vector_0_0_0_0_0_2_0, 0))
         self.connect((self.blocks_delay_0_0_0_0_2_0_0, 0), (self.blocks_stream_to_vector_0, 0))
-        self.connect((self.blocks_integrate_xx_0, 0), (self.blocks_multiply_const_vxx_1, 0))
-        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_file_sink_0_0, 0))
-        self.connect((self.blocks_integrate_xx_0_0, 0), (self.qtgui_vector_sink_f_0, 0))
+        self.connect((self.blocks_integrate_xx_0_0, 0), (self.blocks_nlog10_ff_1, 0))
         self.connect((self.blocks_multiply_const_vxx_0, 0), (self.blocks_add_xx_0, 0))
         self.connect((self.blocks_multiply_const_vxx_0_0, 0), (self.blocks_add_xx_0, 1))
         self.connect((self.blocks_multiply_const_vxx_0_0_0, 0), (self.blocks_add_xx_0, 2))
@@ -205,7 +197,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_1_0, 0), (self.blocks_add_xx_0, 8))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2, 0), (self.blocks_add_xx_0, 7))
         self.connect((self.blocks_multiply_const_vxx_0_0_0_0_0_2_0, 0), (self.blocks_add_xx_0, 9))
-        self.connect((self.blocks_multiply_const_vxx_1, 0), (self.blocks_file_sink_0, 0))
+        self.connect((self.blocks_nlog10_ff_1, 0), (self.qtgui_vector_sink_f_0, 0))
         self.connect((self.blocks_stream_to_vector_0, 0), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0, 0), (self.blocks_multiply_const_vxx_0_0, 0))
         self.connect((self.blocks_stream_to_vector_0_0_0, 0), (self.blocks_multiply_const_vxx_0_0_0, 0))
@@ -263,7 +255,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.blocks_multiply_const_vxx_0_0_0_0_0_1_0.set_k(self.Window[8*self.Vector_length:9*self.Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2.set_k(self.Window[7*self.Vector_length:8*self.Vector_length])
         self.blocks_multiply_const_vxx_0_0_0_0_0_2_0.set_k(self.Window[9*self.Vector_length:10*self.Vector_length])
-        self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
+        self.qtgui_vector_sink_f_0.set_x_axis(((self.HI21- self.samp_rate/2)/1e6), ((self.samp_rate/self.Vector_length)/1e6))
 
     def get_Taps(self):
         return self.Taps
@@ -294,6 +286,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.samp_rate = samp_rate
         self.set_Bandwidth(self.samp_rate)
         self.osmosdr_source_1.set_sample_rate(self.samp_rate)
+        self.qtgui_vector_sink_f_0.set_x_axis(((self.HI21- self.samp_rate/2)/1e6), ((self.samp_rate/self.Vector_length)/1e6))
 
     def get_one_sec_display_integration(self):
         return self.one_sec_display_integration
@@ -306,7 +299,6 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
 
     def set_int_time(self, int_time):
         self.int_time = int_time
-        self.blocks_multiply_const_vxx_1.set_k(np.ones(self.Vector_length)/self.int_time)
 
     def get_Window(self):
         return self.Window
@@ -330,6 +322,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
     def set_HI21(self, HI21):
         self.HI21 = HI21
         self.osmosdr_source_1.set_center_freq(self.HI21, 0)
+        self.qtgui_vector_sink_f_0.set_x_axis(((self.HI21- self.samp_rate/2)/1e6), ((self.samp_rate/self.Vector_length)/1e6))
 
     def get_Bandwidth(self):
         return self.Bandwidth

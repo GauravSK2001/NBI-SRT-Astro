@@ -32,8 +32,8 @@ root.geometry("1474x555")
 root.resizable(False, False)
 
 
-#control = Rot2Prog()                    #Comment this line if not using physical rotor
-control=None                             #Comment this line if using physical rotor
+control = Rot2Prog()                    #Comment this line if not using physical rotor
+# control=None                             #Comment this line if using physical rotor
 rotor = SourceTracking(control=control)
 
 

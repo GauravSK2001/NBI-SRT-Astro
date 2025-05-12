@@ -231,6 +231,13 @@ class SourceTracking:
         galactic_coord = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')
         equatorial_coord = galactic_coord.icrs
 
+        print(current_time)
+        print(self.obs_loc)
+        print(self.PRESSURE)
+        print(self.TEMPERATURE)
+        print(self.HUMIDITY)
+        print(self.WAVELENGTH)
+
         altaz_frame = AltAz(
             obstime=current_time,
             location=self.obs_loc,
