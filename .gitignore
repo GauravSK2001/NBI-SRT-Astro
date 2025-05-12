@@ -15,4 +15,4 @@ calibration/calibration_test_notebook.ipynb
 .cached_spectra/*
 spectra/
 calibration/test_calibrations.ipynb
-interface_main.py
+./interface_main.py
