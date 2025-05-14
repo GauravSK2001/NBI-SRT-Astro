@@ -49,7 +49,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 1420.405751768e6+2e6
+    value: 1420.405751768e6
   states:
     bus_sink: false
     bus_source: false
@@ -109,7 +109,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '1'
+    value: '2'
   states:
     bus_sink: false
     bus_source: false
@@ -290,7 +290,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1528, 660.0]
+    coordinate: [1744, 652.0]
     rotation: 0
     state: enabled
 - name: fft_vxx_0
@@ -391,7 +391,7 @@ blocks:
     ant8: ''
     ant9: ''
     args: airspy=0,bias=0,pack=0
-    bb_gain0: '12'
+    bb_gain0: '15'
     bb_gain1: '20'
     bb_gain10: '20'
     bb_gain11: '20'
@@ -624,7 +624,7 @@ blocks:
     gain_mode7: 'False'
     gain_mode8: 'False'
     gain_mode9: 'False'
-    if_gain0: '12'
+    if_gain0: '15'
     if_gain1: '20'
     if_gain10: '20'
     if_gain11: '20'
@@ -725,7 +725,7 @@ blocks:
     alpha7: '1.0'
     alpha8: '1.0'
     alpha9: '1.0'
-    autoscale: 'True'
+    autoscale: 'False'
     average: '1.0'
     color1: '"blue"'
     color10: '"dark blue"'
@@ -738,7 +738,7 @@ blocks:
     color8: '"dark red"'
     color9: '"dark green"'
     comment: ''
-    grid: 'False'
+    grid: 'True'
     gui_hint: ''
     label1: ''
     label10: ''
@@ -776,12 +776,12 @@ blocks:
     y_axis_label: '"y-Axis"'
     y_units: '""'
     ymax: '10'
-    ymin: '-140'
+    ymin: '0.0001'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1736, 648.0]
+    coordinate: [1944, 656.0]
     rotation: 0
     state: enabled
 
