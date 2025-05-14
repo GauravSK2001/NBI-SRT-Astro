@@ -13,6 +13,7 @@ signal_processing/Opening_binary_test.py
 calibration/my_test_notebook.ipynb
 calibration/calibration_test_notebook.ipynb
 .cached_spectra/*
-
+calibration/firstlight_calib.ipynb
 calibration/test_calibrations.ipynb
 ./interface_main.py
+calibration/calibration_test_notebook.ipynb
