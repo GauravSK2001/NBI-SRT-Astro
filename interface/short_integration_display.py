@@ -28,14 +28,14 @@ class IntegrationDisplay(tk.Frame):
         if detector is not None:
             self.central_freq = detector.central_freq
             self.n_bins = int(2**13)
-            self.Bandwidth = 6e6
+            self.Bandwidth = 10e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
             self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
         else:
 
             self.central_freq = 1420.405751768e6
             self.n_bins = int(2**13)
-            self.Bandwidth = 6e6
+            self.Bandwidth = 10e6
             self.frequency_spacing=self.Bandwidth/self.n_bins
             self.freq = np.arange(0,self.n_bins)*self.frequency_spacing-self.Bandwidth/2
 
@@ -50,7 +50,7 @@ class IntegrationDisplay(tk.Frame):
         self.axes.set_xlabel("Frequency [MHz]")
         self.axes.set_xlim(np.min((self.freq + self.central_freq))/1e6, np.max((self.freq + self.central_freq))/1e6)
 
-
+        self.axes.set_yscale("log")
         self.axes.set_ylabel("Amplitude [SDR Counts]")
 
         #Create and arrange canvas Tk element

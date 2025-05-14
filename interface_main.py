@@ -27,7 +27,7 @@ root.iconphoto(True, icon)
 
 # observatory_launcher.mainloop()
 
-#print("Opening interface")
+print("Opening interface")
 root.geometry("1474x555")
 root.resizable(False, False)
 
@@ -40,10 +40,10 @@ rotor = SourceTracking(control=control)
 detector = Detector(rotor=rotor)
 
 
-
+print("creating observatory")
 observatory_interface = Interface(root, rotor=rotor, detector=detector)
 
-
+print("starting")
 
 observatory_interface.mainloop()
 
