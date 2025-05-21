@@ -73,16 +73,18 @@ class Detector():
 
             self.dsp.stop()
             self.dsp.wait()
+        
 
-    def save_spectrum(self, fname, int_time, rotor_params):
+    def save_spectrum(self, fname, data, int_time, rotor_params):
         print("Detector: Saving spectrum to ", fname)
 
         hdu = fits.PrimaryHDU()
 
-        binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
-        hdu.data = binary_data
+        #binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
 
-        crbin = len(binary_data)//2
+        hdu.data = data
+
+        crbin = len(data)//2
 
         hdu.header = self.make_header(int_time, rotor_params, crbin)
 
@@ -149,12 +151,19 @@ class Detector():
         onesec_display_thread.start()
 
         self.dsp.start()
+
+        running_sum = np.zeros(self.n_bins)
         
         while True:
-            long_int_fsize = os.path.getsize(Detector.cache_fpath + fname)
 
-            if long_int_fsize > 0 or self.status == "idle":
+            file = open(Detector.cache_fpath + "onesec_int")
+            onesec_cache = np.fromfile(file, dtype=np.float32)
+            file.close()
+            onesec_cache_length = len(onesec_cache)
 
+            running_sum += onesec_cache[-self.n_bins:]
+
+            if int(onesec_cache_length/self.n_bins) >= int_time or self.status == "idle":
                 break
             else:
                 time.sleep(1)
@@ -171,7 +180,7 @@ class Detector():
 
         self.delete_onesec_int_cache()
 
-        self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)
+        self.save_spectrum(self.interface_frame.savefilename_var.get(), running_sum / int_time, int_time, rotor_params)
 
     def delete_onesec_int_cache(self):
         #Delete cached one-second spectra
