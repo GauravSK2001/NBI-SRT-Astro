@@ -227,7 +227,7 @@ class SourceTracking:
             az (float): Calculated azimuth (in degrees, before offset).
             el (float): Calculated elevation (in degrees).
         """
-        current_time = Time.now()
+        current_time = Time.now() 
         galactic_coord = SkyCoord(l=L * u.deg, b=B * u.deg, frame='galactic')
         equatorial_coord = galactic_coord.icrs
 
