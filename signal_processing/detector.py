@@ -152,7 +152,7 @@ class Detector():
 
         self.dsp.start()
 
-        running_sum = np.zeros(self.n_bins)
+        f_int = None
         
         while True:
 
@@ -161,9 +161,12 @@ class Detector():
             file.close()
             onesec_cache_length = len(onesec_cache)
 
-            running_sum += onesec_cache[-self.n_bins:]
-
             if int(onesec_cache_length/self.n_bins) >= int_time or self.status == "idle":
+
+                if int(onesec_cache_length/self.n_bins) == int_time:
+                    f_chunks = np.reshape(onesec_cache, (int_time,self.n_bins))
+                    f_int = np.sum(f_chunks, axis=0)
+
                 break
             else:
                 time.sleep(1)
@@ -180,7 +183,11 @@ class Detector():
 
         self.delete_onesec_int_cache()
 
-        self.save_spectrum(self.interface_frame.savefilename_var.get(), running_sum / int_time, int_time, rotor_params)
+        if f_int is not None:
+            print("Saving Spectrum")
+            self.save_spectrum(self.interface_frame.savefilename_var.get(), f_int / int_time, int_time, rotor_params)
+        else:
+            print("No spectrum to save")
 
     def delete_onesec_int_cache(self):
         #Delete cached one-second spectra
