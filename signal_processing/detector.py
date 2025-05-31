@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
-from signal_processing.Final_Spectrograph_Filter import Final_Spectrograph_Filter as PPFB
+from signal_processing.single_track_PPFB import single_track_PPFB as PPFB
 
 import os
 
@@ -73,16 +73,18 @@ class Detector():
 
             self.dsp.stop()
             self.dsp.wait()
+        
 
-    def save_spectrum(self, fname, int_time, rotor_params):
+    def save_spectrum(self, fname, data, int_time, rotor_params):
         print("Detector: Saving spectrum to ", fname)
 
         hdu = fits.PrimaryHDU()
 
-        binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
-        hdu.data = binary_data
+        #binary_data = np.fromfile(open(Detector.cache_fpath + fname), dtype=np.float32)
 
-        crbin = len(binary_data)//2
+        hdu.data = data
+
+        crbin = len(data)//2
 
         hdu.header = self.make_header(int_time, rotor_params, crbin)
 
@@ -143,17 +145,27 @@ class Detector():
         
             
 
-        self.dsp = PPFB(fname, int_time)
+        self.dsp = PPFB(int_time)
         self.interface_frame.set_int_message("Integrating")
         onesec_display_thread = Thread(target=self.integration_display_frame.update_loop, daemon=True)
         onesec_display_thread.start()
 
         self.dsp.start()
+
+        f_int = None
         
         while True:
-            long_int_fsize = os.path.getsize(Detector.cache_fpath + fname)
 
-            if long_int_fsize > 0 or self.status == "idle":
+            file = open(Detector.cache_fpath + "onesec_int")
+            onesec_cache = np.fromfile(file, dtype=np.float32)
+            file.close()
+            onesec_cache_length = len(onesec_cache)
+
+            if int(onesec_cache_length/self.n_bins) >= int_time or self.status == "idle":
+
+                if int(onesec_cache_length/self.n_bins) == int_time:
+                    f_chunks = np.reshape(onesec_cache, (int_time,self.n_bins))
+                    f_int = np.sum(f_chunks, axis=0)
 
                 break
             else:
@@ -171,7 +183,11 @@ class Detector():
 
         self.delete_onesec_int_cache()
 
-        self.save_spectrum(self.interface_frame.savefilename_var.get(), int_time, rotor_params)
+        if f_int is not None:
+            print("Saving Spectrum")
+            self.save_spectrum(self.interface_frame.savefilename_var.get(), f_int / int_time, int_time, rotor_params)
+        else:
+            print("No spectrum to save")
 
     def delete_onesec_int_cache(self):
         #Delete cached one-second spectra
