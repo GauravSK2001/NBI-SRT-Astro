@@ -9,8 +9,6 @@
 # Author: gauravsenthilkumar
 # GNU Radio version: 3.10.10.0
 
-from PyQt5 import Qt
-from gnuradio import qtgui
 from gnuradio import blocks
 from gnuradio import fft
 from gnuradio.fft import window
@@ -18,7 +16,6 @@ from gnuradio import gr
 from gnuradio.filter import firdes
 import sys
 import signal
-from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
@@ -28,37 +25,11 @@ import time
 
 
 
-class single_track_PPFB(gr.top_block, Qt.QWidget):
 
-    def __init__(self):
+class single_track_PPFB(gr.top_block):
+
+    def __init__(self, int_time = 30):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
-        Qt.QWidget.__init__(self)
-        self.setWindowTitle("Not titled yet")
-        qtgui.util.check_set_qss()
-        try:
-            self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
-        except BaseException as exc:
-            print(f"Qt GUI: Could not set Icon: {str(exc)}", file=sys.stderr)
-        self.top_scroll_layout = Qt.QVBoxLayout()
-        self.setLayout(self.top_scroll_layout)
-        self.top_scroll = Qt.QScrollArea()
-        self.top_scroll.setFrameStyle(Qt.QFrame.NoFrame)
-        self.top_scroll_layout.addWidget(self.top_scroll)
-        self.top_scroll.setWidgetResizable(True)
-        self.top_widget = Qt.QWidget()
-        self.top_scroll.setWidget(self.top_widget)
-        self.top_layout = Qt.QVBoxLayout(self.top_widget)
-        self.top_grid_layout = Qt.QGridLayout()
-        self.top_layout.addLayout(self.top_grid_layout)
-
-        self.settings = Qt.QSettings("GNU Radio", "single_track_PPFB")
-
-        try:
-            geometry = self.settings.value("geometry")
-            if geometry:
-                self.restoreGeometry(geometry)
-        except BaseException as exc:
-            print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
 
         ##################################################
         # Variables
@@ -69,7 +40,7 @@ class single_track_PPFB(gr.top_block, Qt.QWidget):
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
         self.samp_rate = samp_rate = 10e6
         self.one_sec_display_integration = one_sec_display_integration = 1
-        self.int_time = int_time = 30
+        self.int_time = int_time
         self.Window = Window = sinc
         self.HI21 = HI21 = 1420.405751768e6
         self.Bandwidth = Bandwidth = samp_rate
@@ -183,14 +154,6 @@ class single_track_PPFB(gr.top_block, Qt.QWidget):
         self.connect((self.osmosdr_source_1, 0), (self.blocks_delay_0_0_0_0_2_0_0, 0))
 
 
-    def closeEvent(self, event):
-        self.settings = Qt.QSettings("GNU Radio", "single_track_PPFB")
-        self.settings.setValue("geometry", self.saveGeometry())
-        self.stop()
-        self.wait()
-
-        event.accept()
-
     def get_Vector_length(self):
         return self.Vector_length
 
@@ -294,29 +257,23 @@ class single_track_PPFB(gr.top_block, Qt.QWidget):
 
 
 def main(top_block_cls=single_track_PPFB, options=None):
-
-    qapp = Qt.QApplication(sys.argv)
-
+    if gr.enable_realtime_scheduling() != gr.RT_OK:
+        gr.logger("realtime").warn("Error: failed to enable real-time scheduling.")
     tb = top_block_cls()
-
-    tb.start()
-
-    tb.show()
 
     def sig_handler(sig=None, frame=None):
         tb.stop()
         tb.wait()
 
-        Qt.QApplication.quit()
+        sys.exit(0)
 
     signal.signal(signal.SIGINT, sig_handler)
     signal.signal(signal.SIGTERM, sig_handler)
 
-    timer = Qt.QTimer()
-    timer.start(500)
-    timer.timeout.connect(lambda: None)
+    tb.start()
 
-    qapp.exec_()
+    tb.wait()
+
 
 if __name__ == '__main__':
     main()

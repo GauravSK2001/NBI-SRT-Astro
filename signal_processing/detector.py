@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
-from signal_processing.Final_Spectrograph_Filter import Final_Spectrograph_Filter as PPFB
+from signal_processing.single_track_PPFB import single_track_PPFB as PPFB
 
 import os
 
@@ -145,7 +145,7 @@ class Detector():
         
             
 
-        self.dsp = PPFB(fname, int_time)
+        self.dsp = PPFB(int_time)
         self.interface_frame.set_int_message("Integrating")
         onesec_display_thread = Thread(target=self.integration_display_frame.update_loop, daemon=True)
         onesec_display_thread.start()
