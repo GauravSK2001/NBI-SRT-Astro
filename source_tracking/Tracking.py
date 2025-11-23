@@ -33,6 +33,7 @@ class SourceTracking:
         self.current_source_azel = None      # Latest computed AltAz of the source
         self.current_source_lb = None        # Latest Galactic coordinates of the source
         self.current_telescope_azel = None   # Last commanded (rounded) AltAz of the telescope
+        self.last_status_time = None         # Timestamp of the last status check
 
         # Allowed elevation range
         self.min_el = config.get("min_el", 0)  # Default to 0° if not found
@@ -95,7 +96,7 @@ class SourceTracking:
         if self.gui_tracking_display_frame is not None:
             if self.control is not None:
 
-                rotor_az, rotor_el = self.control.status()
+                rotor_az, rotor_el = self.get_current_telescope_az_el()
                 rotor_az = round(rotor_az)
                 rotor_el = round(rotor_el)
                 self.gui_tracking_display_frame.update_pointing_plot(az=rotor_az, el=rotor_el)
@@ -158,7 +159,7 @@ class SourceTracking:
         print("\nWait for 'Target Reached' confirmation...")
         while self.state == "slewing":
             if self.control:
-                current_az, current_el = self.control.status()
+                current_az, current_el = self.get_current_telescope_az_el()
                 self.update_tracking_plot()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
@@ -251,21 +252,35 @@ class SourceTracking:
 
     def get_current_telescope_az_el(self):
         """
-        Retrieve the current telescope azimuth and elevation.
+        Retrieve the current telescope azimuth and elevation. Returns stored value if < 1 second old.
         
         Returns:
             current_az (float): Current azimuth.
             current_el (float): Current elevation.
         """
-        if self.current_telescope_azel is None:
-            if self.control:
-                current_az, current_el = self.control.status()
-            else:
-                current_az, current_el = 0, 0
-        else:
-            current_az = self.current_telescope_azel.az.deg
-            current_el = self.current_telescope_azel.alt.deg
-        return current_az, current_el
+        now = time.time()
+
+        # If we have a cached telescope position and it's recent, return it.
+        if self.current_telescope_azel is not None and self.last_status_time is not None:
+            if (now - self.last_status_time) < 1.0:
+                return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
+
+        # Otherwise, request an update from hardware if available and cache it.
+        if self.control:
+            current_az, current_el = self.control.status()
+            try:
+                self.current_telescope_azel = SkyCoord(az=current_az * u.deg, alt=current_el * u.deg, frame='altaz')
+                self.last_status_time = now
+            except Exception:
+                # If caching fails, clear the cache timestamp so subsequent calls still try
+                self.current_telescope_azel = None
+                self.last_status_time = None
+            return current_az, current_el
+
+        # No hardware control: fall back to cached value if present, otherwise zeros
+        if self.current_telescope_azel is not None:
+            return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
+        return 0, 0
 
     def compute_effective_azimuth(self, raw_az, current_az):        
         adjusted_az = self.boundary_adjustment(raw_az, current_az)
@@ -375,24 +390,6 @@ class SourceTracking:
         self.set_integration_button_state()
 
         self._monitor_pointing(update_time=update_time)
-    
-    def get_current_telescope_az_el(self):
-        """
-        Retrieve the current telescope azimuth and elevation.
-        
-        Returns:
-            current_az (float): Current azimuth.
-            current_el (float): Current elevation.
-        """
-        if self.current_telescope_azel is None:
-            if self.control:
-                current_az, current_el = self.control.status()
-            else:
-                current_az, current_el = 0, 0
-        else:
-            current_az = self.current_telescope_azel.az.deg
-            current_el = self.current_telescope_azel.alt.deg
-        return current_az, current_el
 
     def slew(self, az, el, override=False, home=False, stow=False):
         """
