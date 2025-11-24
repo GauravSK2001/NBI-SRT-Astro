@@ -118,7 +118,7 @@ class Rot2Prog:
         cmd = 0x1F  # Command code for status.
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()
-        time.sleep(1)
+        # time.sleep(1) # faulty delay? sleeps >3 times per 3 seconds
         return az_relative + self.az_min, el_relative + self.el_min
 
     def Restart(self):
