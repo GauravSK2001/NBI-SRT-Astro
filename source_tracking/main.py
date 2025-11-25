@@ -48,7 +48,7 @@ def main():
         print("Rot2Prog control initialized.")
     except Exception as e:
         print(f"Error initializing Rot2Prog: {e} \nFalling back to simulator.")
-        control = sim_ctrl.Rot2Prog()
+        control = sim_ctrl.Simulator_Rot2Prog()
 
     # Instantiate the source tracking system
     rotor = SourceTracking(control=control)

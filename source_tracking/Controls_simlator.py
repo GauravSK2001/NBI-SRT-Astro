@@ -1,6 +1,6 @@
 import time
 
-class Rot2Prog:
+class Simulator_Rot2Prog:
     """
     Manages low-level communications with the rotor.
     Sends command packets and receives status packets from the device.
@@ -58,7 +58,7 @@ class Rot2Prog:
         self.last_azel = (az_current, el_current)
         self.last_move_time = current_time
 
-        print(f"Simulator status: Az={az_current:.2f}, El={el_current:.2f}")
+        print(f"Simulator status: Az={az_current:.2f}, El={el_current:.2f}. Time: {time.time():.2f}")
 
         return az_current, el_current
 
