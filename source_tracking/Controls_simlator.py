@@ -61,7 +61,6 @@ class Simulator_Rot2Prog:
         print(f"Simulator status: Az={az_current:.2f}, El={el_current:.2f}. Time: {time.time():.2f}")
 
         return az_current, el_current
-
     
     def point(self, az, el):
         """
@@ -71,9 +70,6 @@ class Simulator_Rot2Prog:
         self.status()  # Update current position before moving.
         self.target_azel = (az, el)
         self.last_move_time = time.time()
-
-
-        
 
     def stop(self):
         """
