@@ -105,6 +105,7 @@ class Rot2Prog:
         """
         Send a stop command to the rotor and return the current position.
         """
+        self.ser.reset_input_buffer() # flush input buffer to avoid staggered reads
         cmd = 0x0F  # Command code for stop.
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()
@@ -115,6 +116,7 @@ class Rot2Prog:
         """
         Request the current rotor status and return the Azimuth and Elevation.
         """
+        self.ser.reset_input_buffer() # flush input buffer to avoid staggered reads
         cmd = 0x1F  # Command code for status.
         self.send_pkt(cmd)
         az_relative, el_relative = self.receive_rot2_pkt()

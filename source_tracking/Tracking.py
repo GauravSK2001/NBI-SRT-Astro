@@ -4,10 +4,12 @@ from astropy.time import Time
 from astropy import units as u
 import yaml,os
 
+import Controls_simlator as sim_ctrl
+
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
 
-    def __init__(self, control=None):
+    def __init__(self, control=sim_ctrl.Rot2Prog()):
         # Load configuration from YAML file
         config_path = os.path.join(os.path.dirname(__file__),"../telescope_config.yml")
         with open(config_path, "r") as file:
@@ -408,12 +410,13 @@ class SourceTracking:
             # Command the telescope to point at the effective coordinates.
             self.set_pointing(effective_az, el_cmd, override=override)
             
-            # Update stored positions.
-            self.update_stored_positions(az_cmd, el_cmd, effective_az)
             
             print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
             self.update_gui_message(f"Slewing to Az={az_cmd}°, El={el_cmd}°")
             self.check_if_reached_target(az_cmd, el_cmd)
+            
+            # Update stored positions.
+            self.update_stored_positions(az_cmd, el_cmd, effective_az)
 
             if home:
                 self.set_state("home")

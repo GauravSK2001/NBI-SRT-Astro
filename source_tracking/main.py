@@ -1,5 +1,6 @@
 import sys
 from Controls import Rot2Prog
+import Controls_simlator as sim_ctrl
 from Tracking import SourceTracking  # Adjust the import if needed.
 from astropy.coordinates import SkyCoord,Longitude
 from astropy import units as u
@@ -46,8 +47,8 @@ def main():
         control = Rot2Prog()  # by default reads 'config.yml'
         print("Rot2Prog control initialized.")
     except Exception as e:
-        print(f"Error initializing Rot2Prog: {e}")
-        control = None
+        print(f"Error initializing Rot2Prog: {e} \nFalling back to simulator.")
+        control = sim_ctrl.Rot2Prog()
 
     # Instantiate the source tracking system
     rotor = SourceTracking(control=control)
