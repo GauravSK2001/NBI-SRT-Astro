@@ -4,7 +4,7 @@ from astropy.time import Time
 from astropy import units as u
 import yaml,os
 
-import Controls_simlator as sim_ctrl
+from source_tracking import Controls_simlator as sim_ctrl
 
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
