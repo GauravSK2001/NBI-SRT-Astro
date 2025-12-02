@@ -9,7 +9,7 @@ class Rot2Prog:
     """
     def __init__(self):
         # Update the port to match your device.
-        self.port = "/dev/tty.usbserial-A10PDKDD"
+        self.port = "/dev/tty.usbserial-A10PDMGT"
         self.baudrate = 115200
 
         # Initialize the serial connection.

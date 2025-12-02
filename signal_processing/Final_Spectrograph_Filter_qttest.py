@@ -74,7 +74,7 @@ class Final_Spectrograph_Filter_qttest(gr.top_block, Qt.QWidget):
         self.sinc = sinc = np.sinc(sinc_sample_locations/np.pi)
         self.samp_rate = samp_rate = 10e6
         self.one_sec_display_integration = one_sec_display_integration = 2
-        self.int_time = int_time = 300
+        self.int_time = int_time = 1
         self.Window = Window = sinc
         self.HI21 = HI21 = 1420.405751768e6
         self.Bandwidth = Bandwidth = samp_rate

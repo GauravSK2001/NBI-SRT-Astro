@@ -375,24 +375,6 @@ class SourceTracking:
         self.set_integration_button_state()
 
         self._monitor_pointing(update_time=update_time)
-    
-    def get_current_telescope_az_el(self):
-        """
-        Retrieve the current telescope azimuth and elevation.
-        
-        Returns:
-            current_az (float): Current azimuth.
-            current_el (float): Current elevation.
-        """
-        if self.current_telescope_azel is None:
-            if self.control:
-                current_az, current_el = self.control.status()
-            else:
-                current_az, current_el = 0, 0
-        else:
-            current_az = self.current_telescope_azel.az.deg
-            current_el = self.current_telescope_azel.alt.deg
-        return current_az, current_el
 
     def slew(self, az, el, override=False, home=False, stow=False):
         """
