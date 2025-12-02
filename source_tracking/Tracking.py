@@ -156,12 +156,13 @@ class SourceTracking:
             return False
         return True
 
-    def check_if_reached_target(self, target_az, target_el, poll_interval=3):
+    def check_if_reached_target(self, target_az, target_el, poll_interval=0):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
         while self.state == "slewing":
             if self.control:
                 current_az, current_el = self.get_current_telescope_az_el()
+                print(f"Current Position: Az={round(current_az)}°, El={round(current_el)}°")
                 self.update_tracking_plot()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
