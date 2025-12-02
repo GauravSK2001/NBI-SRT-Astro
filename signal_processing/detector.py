@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.coordinates import SkyCoord
 
-from signal_processing.single_track_PPFB import single_track_PPFB as PPFB
+from signal_processing.mod_PPFB import PPFB as PPFB
 
 import os
 

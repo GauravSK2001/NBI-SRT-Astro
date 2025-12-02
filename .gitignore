@@ -1,4 +1,5 @@
 .git/
+*.pyc
 **.DS_Store
 **.pdf
 digital_signal_processing/
