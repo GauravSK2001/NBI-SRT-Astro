@@ -12,3 +12,4 @@ calibration/firstlight_calib.ipynb
 calibration/test_calibrations.ipynb
 ./interface_main.py
 calibration/sun_planning/*
+**.pyc
