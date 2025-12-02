@@ -4,10 +4,12 @@ from astropy.time import Time
 from astropy import units as u
 import yaml,os
 
+import Controls_simlator as sim_ctrl
+
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
 
-    def __init__(self, control=None):
+    def __init__(self, control=sim_ctrl.Simulator_Rot2Prog()):
         # Load configuration from YAML file
         config_path = os.path.join(os.path.dirname(__file__),"../telescope_config.yml")
         with open(config_path, "r") as file:
@@ -33,6 +35,7 @@ class SourceTracking:
         self.current_source_azel = None      # Latest computed AltAz of the source
         self.current_source_lb = None        # Latest Galactic coordinates of the source
         self.current_telescope_azel = None   # Last commanded (rounded) AltAz of the telescope
+        self.last_status_time = None         # Timestamp of the last status check
 
         # Allowed elevation range
         self.min_el = config.get("min_el", 0)  # Default to 0° if not found
@@ -95,7 +98,7 @@ class SourceTracking:
         if self.gui_tracking_display_frame is not None:
             if self.control is not None:
 
-                rotor_az, rotor_el = self.control.status()
+                rotor_az, rotor_el = self.get_current_telescope_az_el()
                 rotor_az = round(rotor_az)
                 rotor_el = round(rotor_el)
                 self.gui_tracking_display_frame.update_pointing_plot(az=rotor_az, el=rotor_el)
@@ -153,12 +156,13 @@ class SourceTracking:
             return False
         return True
 
-    def check_if_reached_target(self, target_az, target_el, poll_interval=3):
+    def check_if_reached_target(self, target_az, target_el, poll_interval=0):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
         while self.state == "slewing":
             if self.control:
-                current_az, current_el = self.control.status()
+                current_az, current_el = self.get_current_telescope_az_el()
+                print(f"Current Position: Az={round(current_az)}°, El={round(current_el)}°")
                 self.update_tracking_plot()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
@@ -251,21 +255,35 @@ class SourceTracking:
 
     def get_current_telescope_az_el(self):
         """
-        Retrieve the current telescope azimuth and elevation.
+        Retrieve the current telescope azimuth and elevation. Returns stored value if < 1 second old.
         
         Returns:
             current_az (float): Current azimuth.
             current_el (float): Current elevation.
         """
-        if self.current_telescope_azel is None:
-            if self.control:
-                current_az, current_el = self.control.status()
-            else:
-                current_az, current_el = 0, 0
-        else:
-            current_az = self.current_telescope_azel.az.deg
-            current_el = self.current_telescope_azel.alt.deg
-        return current_az, current_el
+        now = time.time()
+
+        # If we have a cached telescope position and it's recent, return it.
+        if self.current_telescope_azel is not None and self.last_status_time is not None:
+            if (now - self.last_status_time) < 1.0:
+                return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
+
+        # Otherwise, request an update from hardware if available and cache it.
+        if self.control:
+            current_az, current_el = self.control.status()
+            try:
+                self.current_telescope_azel = SkyCoord(az=current_az * u.deg, alt=current_el * u.deg, frame='altaz')
+                self.last_status_time = now
+            except Exception:
+                # If caching fails, clear the cache timestamp so subsequent calls still try
+                self.current_telescope_azel = None
+                self.last_status_time = None
+            return current_az, current_el
+
+        # No hardware control: fall back to cached value if present, otherwise zeros
+        if self.current_telescope_azel is not None:
+            return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
+        return 0, 0
 
     def compute_effective_azimuth(self, raw_az, current_az):        
         adjusted_az = self.boundary_adjustment(raw_az, current_az)
@@ -393,12 +411,12 @@ class SourceTracking:
             # Command the telescope to point at the effective coordinates.
             self.set_pointing(effective_az, el_cmd, override=override)
             
-            # Update stored positions.
-            self.update_stored_positions(az_cmd, el_cmd, effective_az)
-            
             print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
             self.update_gui_message(f"Slewing to Az={az_cmd}°, El={el_cmd}°")
             self.check_if_reached_target(az_cmd, el_cmd)
+            
+            # Update stored positions.
+            self.update_stored_positions(az_cmd, el_cmd, effective_az)
 
             if home:
                 self.set_state("home")
