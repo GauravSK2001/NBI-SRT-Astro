@@ -5,7 +5,8 @@ class Simulator_Rot2Prog:
     Manages low-level communications with the rotor.
     Sends command packets and receives status packets from the device.
     """
-    def __init__(self):
+    def __init__(self, movespeed=5):
+        self.isSimulator = True
 
         # Device-specific properties.
         self.pulses_per_degree = 10  # Conversion factor: pulses per degree.
@@ -14,7 +15,7 @@ class Simulator_Rot2Prog:
         self.el_min = 0
         self.el_max = 360
 
-        self.movespeed = 1  # Simulated speed of movement in degrees per second.
+        self.movespeed = movespeed  # Simulated speed of movement in degrees per second.
         self.last_azel = (0, 0)  # Store last known (Az, El) position.
         self.target_azel = (0, 0)  # Store next target (Az, El) position.
         self.last_move_time = time.time()  # Timestamp of the last movement command.
@@ -58,7 +59,7 @@ class Simulator_Rot2Prog:
         self.last_azel = (az_current, el_current)
         self.last_move_time = current_time
 
-        print(f"Simulator status: Az={az_current:.2f}, El={el_current:.2f}. Time: {time.time():.2f}")
+        #print(f"Simulator status: Az={az_current:.2f}, El={el_current:.2f}. Time: {time.time():.2f}")
 
         return az_current, el_current
     

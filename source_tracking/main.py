@@ -1,6 +1,6 @@
 import sys
 from Controls import Rot2Prog
-import Controls_simlator as sim_ctrl
+import Controls_simulator as sim_ctrl
 from Tracking import SourceTracking  # Adjust the import if needed.
 from astropy.coordinates import SkyCoord,Longitude
 from astropy import units as u
@@ -29,7 +29,7 @@ def print_help():
         Example: s 180 45 azel
 
     r
-        Restart the rotator.
+        Restart the rotor.
 
     status
         Query and display the current Az, El from the hardware.
@@ -43,15 +43,31 @@ def main():
     print("Welcome to the Interactive Telescope Terminal")
 
     # Instantiate the hardware control
+    port_master = "/dev/tty.usbserial-A10PDMGT"  # Update this to your actual port
+    
+    interferometryMode = True  # Set to True if using both dishes in interferometry mode
+    port_slave = None   # Update this to your actual port, or set to None if not used
+    
     try:
-        control = Rot2Prog()  # by default reads 'config.yml'
+        control_master = Rot2Prog(port_master)  # by default reads 'config.yml'
         print("Rot2Prog control initialized.")
     except Exception as e:
-        print(f"Error initializing Rot2Prog: {e} \nFalling back to simulator.")
-        control = sim_ctrl.Simulator_Rot2Prog()
+            print(f"Error initializing Rot2Prog: {e} \nFalling back to simulator.")
+            control_master = sim_ctrl.Simulator_Rot2Prog(4)
+
+    if interferometryMode:
+        try:
+            control_slave = Rot2Prog(port_slave)  # by default reads 'config.yml'
+            print("Slave Rot2Prog control initialized.")
+        except Exception as e:
+            print(f"Error initializing Slave Rot2Prog: {e} \nFalling back to simulator.")
+            control_slave = sim_ctrl.Simulator_Rot2Prog(3)
+    else:
+        control_slave = None
+
 
     # Instantiate the source tracking system
-    rotor = SourceTracking(control=control)
+    rotor = SourceTracking(control_master = control_master, control_slave = control_slave)
 
     while True:
         try:
@@ -67,23 +83,27 @@ def main():
             print_help()
             continue
 
-        if cmd in ["off", "exit", "quit", "q", "shutdown"]:
+        if cmd.split()[0] in ["off", "exit", "quit", "q", "shutdown"]:
             print("\n...Shutting down...\n")
-            if control is not None:
-                try:
-                    rotor.stow()
-                except Exception as e:
-                    print(f"Error with rotator: {e}")
+            parts = cmd.split()
+
+            if len(parts) > 1 and parts[1] in ["stow", "s"]:
+                if control_master is not None:
+                    try:
+                        rotor.stow()
+                    except Exception as e:
+                        print(f"Error with rotor: {e}")
             break
 
         if cmd == "r":
-            if control is not None:
+            if control_master is not None:
                 try:
-                    control.Restart()
+                    rotor.restart_rotor()
+                    print("Rotator restarted successfully.")
                 except Exception as e:
-                    print(f"Error restarting rotator: {e}")
+                    print(f"Error restarting rotor: {e}")
             else:
-                print("No rotator control available to restart.")
+                print("No rotor control available to restart.")
             continue
 
         # Continuous tracking: t <L> <B>
@@ -142,16 +162,27 @@ def main():
             continue
 
         if cmd.startswith("status"):
-            if control is None:
-                print("No rotator available to query status.")
+            if control_master is None:
+                print("No rotor available to query status.")
             else:
                 try:
-                    az, el = control.status()
+                    az, el = rotor.get_current_telescope_az_el()
                     az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
-                    print(f"Az={round(az)}°, El={round(el)}°")
+                    print(f"Master status: Az={round(az)}°, El={round(el)}°")
                 except Exception as e:
                     print(f"Error reading status: {e}")
+                
+
+                if control_slave is not None:
+                    try:
+                        az, el = rotor.get_current_slave_az_el()
+                        az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
+                        print(f"Slave status: Az={round(az)}°, El={round(el)}°")
+                    except Exception as e:
+                        print(f"Error reading status of slave: {e}")
+            
             continue
+
 
         print("Unknown command. Type 'help' to see available commands.")
 
@@ -159,5 +190,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-#test 123 abc

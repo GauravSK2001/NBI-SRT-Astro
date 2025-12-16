@@ -1,0 +1,11 @@
+gui fejl:
+    update_tracking_plot() #96
+
+
+point() rgba(234, 179, 12, 1)
+status() #
+
+
+
+when interferometry starts, be absolutely sure the two telescopes are aligned, 
+especially check the round() commands in check_if_reached_target

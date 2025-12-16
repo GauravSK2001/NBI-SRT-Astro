@@ -7,9 +7,13 @@ class Rot2Prog:
     Manages low-level communications with the rotor.
     Sends command packets and receives status packets from the device.
     """
-    def __init__(self):
+    def __init__(self, port=None):
+        self.isSimulator = False
+        
         # Update the port to match your device.
-        self.port = "/dev/tty.usbserial-A10PDMGT"
+        if port is None:
+            raise ValueError("A valid serial port must be provided for Rot2Prog.")
+        self.port = port
         self.baudrate = 115200
 
         # Initialize the serial connection.

@@ -4,12 +4,11 @@ from astropy.time import Time
 from astropy import units as u
 import yaml,os
 
-from source_tracking import Controls_simlator as sim_ctrl
 
 class SourceTracking:
     VALID_STATES = {"idle", "tracking", "slewing", "stowed", "home", "stopped"}
 
-    def __init__(self, control=sim_ctrl.Simulator_Rot2Prog()):
+    def __init__(self, control_master=None, control_slave=None):
         # Load configuration from YAML file
         config_path = os.path.join(os.path.dirname(__file__),"../telescope_config.yml")
         with open(config_path, "r") as file:
@@ -37,12 +36,16 @@ class SourceTracking:
         self.current_telescope_azel = None   # Last commanded (rounded) AltAz of the telescope
         self.last_status_time = None         # Timestamp of the last status check
 
+        self.current_slave_telescope_azel = None   # Last commanded (rounded) AltAz of the slave telescope
+        self.last_slave_status_time = None         # Timestamp of the last slave status check
+
         # Allowed elevation range
         self.min_el = config.get("min_el", 0)  # Default to 0° if not found
         self.max_el = config.get("max_el", 90)  # Default to 90° if not found
 
         # Hardware control interface
-        self.control = control
+        self.control_master = control_master
+        self.control_slave = control_slave
 
         #Software GUI frames - set to None initially, but added if GUI is used.
         self.gui_control_frame = None
@@ -96,7 +99,7 @@ class SourceTracking:
     def update_tracking_plot(self):
         #Update GUI tracking plot with current azimuth and elevation
         if self.gui_tracking_display_frame is not None:
-            if self.control is not None:
+            if self.control_master is not None:
 
                 rotor_az, rotor_el = self.get_current_telescope_az_el()
                 rotor_az = round(rotor_az)
@@ -159,22 +162,43 @@ class SourceTracking:
     def check_if_reached_target(self, target_az, target_el, poll_interval=0):
         """Wait until the telescope reaches the target azimuth and elevation."""
         print("\nWait for 'Target Reached' confirmation...")
-        while self.state == "slewing":
-            if self.control:
+        if self.control_master is not None and poll_interval == 0:
+            if self.control_master.isSimulator:
+                poll_interval = 0.5  # Simulator needs time to "move"
+        
+        
+        if self.control_master is not None:
+            # wait for master to reach target
+            while self.state == "slewing": # Currently nothing but a while True-loop.
                 current_az, current_el = self.get_current_telescope_az_el()
-                print(f"Current Position: Az={round(current_az)}°, El={round(current_el)}°")
+                print(f"Master Current Position: Az={round(current_az)}°, El={round(current_el)}°")
                 self.update_tracking_plot()
                 # Use round to avoid small floating differences
                 if round(current_az) == round(target_az) and round(current_el) == round(target_el):
-                    print("\nTarget Reached.")
                     self.update_gui_azel_coordinates(current_az, current_el)
                     self.update_tracking_plot()
                     break
                 time.sleep(poll_interval)  # Pause between checks
-            else:
-                # If no hardware, just break
-                print("\nTarget Reached.")
-                break
+            print(f"\nMaster Target Reached")
+
+            if self.control_slave is not None and poll_interval == 0:
+                if self.control_slave.isSimulator:
+                    poll_interval = 0.5  # Simulator needs time to "move"
+
+            # wait for slave to reach target if in interferometry mode
+            if self.control_slave is not None:
+                while self.state == "slewing": # Currently nothing but a while True-loop.
+                    current_az, current_el = self.get_current_slave_az_el()
+                    print(f"Slave Current Position: Az={round(current_az)}°, El={round(current_el)}°")
+                    # Use round to avoid small floating differences
+                    if round(current_az) == round(target_az) and round(current_el) == round(target_el):
+                        break
+                    time.sleep(poll_interval)  # Pause between checks
+            
+            print("\nTarget Reached.")
+        else:
+            # If no hardware, just break
+            print("\nTarget Reached.")
             
 
     def boundary_adjustment(self, next_azimuth, current_azimuth):
@@ -217,10 +241,14 @@ class SourceTracking:
             if not self.check_if_allowed_el(el):
                 raise ValueError("\nElevation out of bounds!")
 
-        if self.control:
-            self.control.point(az, el)
+        if self.control_master is not None:
+            self.control_master.point(az, el)
         else:
             print(f"\nSimulated pointing to Az={az}° , El={el}°.\n")
+        
+        
+        if self.control_slave is not None:
+            self.control_slave.point(az, el)
 
     def tracking_galactic_coordinates(self, L, B):
         """
@@ -269,8 +297,8 @@ class SourceTracking:
                 return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
 
         # Otherwise, request an update from hardware if available and cache it.
-        if self.control:
-            current_az, current_el = self.control.status()
+        if self.control_master is not None:
+            current_az, current_el = self.control_master.status()
             try:
                 self.current_telescope_azel = SkyCoord(az=current_az * u.deg, alt=current_el * u.deg, frame='altaz')
                 self.last_status_time = now
@@ -284,6 +312,46 @@ class SourceTracking:
         if self.current_telescope_azel is not None:
             return self.current_telescope_azel.az.deg, self.current_telescope_azel.alt.deg
         return 0, 0
+
+
+    def get_current_slave_az_el(self):        
+        """
+        Retrieve the current slave telescope azimuth and elevation.
+        
+        Returns:
+            current_az (float): Current slave azimuth.
+            current_el (float): Current slave elevation.
+        """
+        
+        now = time.time()
+
+        # If we have a cached telescope position and it's recent, return it.
+        if self.current_slave_telescope_azel is not None and self.last_slave_status_time is not None:
+            if (now - self.last_slave_status_time) < 1.0:
+                return self.current_slave_telescope_azel.az.deg, self.current_slave_telescope_azel.alt.deg
+
+        # Otherwise, request an update from hardware if available and cache it.
+        if self.control_slave is not None:
+            current_az, current_el = self.control_slave.status()
+            try:
+                self.current_slave_telescope_azel = SkyCoord(az=current_az * u.deg, alt=current_el * u.deg, frame='altaz')
+                self.last_slave_status_time = now
+            except Exception:
+                # If caching fails, clear the cache timestamp so subsequent calls still try
+                self.current__slave_telescope_azel = None
+                self.last_slave_status_time = None
+            return current_az, current_el
+
+        # No hardware control: fall back to cached value if present, otherwise zeros
+        if self.current_slave_telescope_azel is not None:
+            return self.current_slave_telescope_azel.az.deg, self.current_slave_telescope_azel.alt.deg
+        return 0, 0
+
+
+
+
+
+
 
     def compute_effective_azimuth(self, raw_az, current_az):        
         adjusted_az = self.boundary_adjustment(raw_az, current_az)
@@ -458,30 +526,23 @@ class SourceTracking:
 
         self.update_gui_message(f"Homed")
         self.reset_pointing_gui_inputs(True, False, True)
-
-    def stow(self):
-        """
-        #Stow the telescope to a safe position (Az=0°, El=-15°).
-    """
-        self.set_state("slewing")
-        self.slew(0, -15, override=True)
-        self.set_state("stowed")
-
-        self.update_gui_message(f"Stowed")
-        self.reset_pointing_gui_inputs(True, True, False)
     """
 
     def stop(self):
         """
         Stop the telescope and reset relevant tracking variables.
         """
-        if self.control:
-            az_stop, el_stop = self.control.stop()
+        if self.control_master is not None:
+            az_stop, el_stop = self.control_master.stop()
+            
+            if self.control_slave is not None:
+                self.control_slave.stop()
+                
             self.set_state("stopped")
             self.current_source_lb = None
             self.offset = 0 if self.offset != -360 else -360
             print(f"Stopped at Az={round(az_stop)}°, El={round(el_stop)}°.")
-            self.update_tracking_plot()
+            self.update_tracking_plot() # <- no idea if this concerns the slave
             #time.sleep(2)
             self.set_state("idle")
 
@@ -499,3 +560,27 @@ class SourceTracking:
             self.offset = 0 if self.offset != -360 else -360
             time.sleep(2)
             self.set_state("idle")
+    
+
+    def restart_rotor(self):
+        """
+        Restart the rotor control.
+        """
+        if self.control_master:
+            self.control_master.restart()
+        
+        if self.control_slave:
+            self.control_slave.restart()
+    
+
+    def stow(self):
+        
+        #Stow the telescope to a safe position (Az=0°, El=-15°).
+    
+        self.set_state("slewing")
+        self.slew(0, -15, override=True)
+        self.set_state("stowed")
+
+        #self.update_gui_message(f"Stowed")
+        #self.reset_pointing_gui_inputs(True, True, False)
+    
