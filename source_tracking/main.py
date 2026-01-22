@@ -43,10 +43,10 @@ def main():
     print("Welcome to the Interactive Telescope Terminal")
 
     # Instantiate the hardware control
-    port_master = "/dev/tty.usbserial-A10PDMGT"  # Update this to your actual port
+    port_master = "COM3"  # Update this to your actual port
     
     interferometryMode = True  # Set to True if using both dishes in interferometry mode
-    port_slave = None   # Update this to your actual port, or set to None if not used
+    port_slave = "COM4"   # Update this to your actual port, or set to None if not used
     
     try:
         control_master = Rot2Prog(port_master)  # by default reads 'config.yml'
@@ -167,7 +167,7 @@ def main():
             else:
                 try:
                     az, el = rotor.get_current_telescope_az_el()
-                    az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
+                    #az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
                     print(f"Master status: Az={round(az)}°, El={round(el)}°")
                 except Exception as e:
                     print(f"Error reading status: {e}")
@@ -176,7 +176,7 @@ def main():
                 if control_slave is not None:
                     try:
                         az, el = rotor.get_current_slave_az_el()
-                        az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
+                        #az, el = Longitude(az,unit=u.deg,wrap_angle=360*u.deg).deg, el
                         print(f"Slave status: Az={round(az)}°, El={round(el)}°")
                     except Exception as e:
                         print(f"Error reading status of slave: {e}")

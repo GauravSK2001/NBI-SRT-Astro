@@ -403,12 +403,12 @@ class SourceTracking:
                 # Round the raw computed azimuth/elevation.
                 az_round = round(source_az)
                 el_round = round(source_el)
-                effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az)
+                # effective_telescope_az = self.compute_effective_azimuth(source_az, current_telescope_az) # Deprecated
                 print(f"[{current_time_iso}] Updated pointing to Az={az_round}°, El={el_round}°")
-                # Command the telescope (set_pointing adds the offset).
-                self.set_pointing(effective_telescope_az, el_round, override=False)
+                # Command the telescope.
+                self.slew(az_round, el_round, tracking=True)
                 # Update stored positions.
-                self.update_stored_positions(source_az, source_el, effective_telescope_az, L, B)
+                self.update_stored_positions(source_az, source_el, az_round, L, B)
 
                 self.update_gui_azel_coordinates(az_round, el_round)
                 
@@ -453,20 +453,24 @@ class SourceTracking:
         print(f"\nTarget galactic coordinates set to: L={L:.2f}°, B={B:.2f}°.")
 
         __, az, el = self.tracking_galactic_coordinates(L, B)
+    
 
-        self.slew(az, el, override=False)
-        self.set_state("tracking")
+        self.slew(az, el, override=False, tracking=True)
 
         self.update_gui_message(f"Tracking l:{L:.2f}, b:{B:.2f}")
         self.set_integration_button_state()
 
         self._monitor_pointing(update_time=update_time)
 
-    def slew(self, az, el, override=False, home=False, stow=False):
+    def slew(self, az, el, override=False, home=False, stow=False, tracking=False):
         """
         Slew the telescope to the specified Azimuth and Elevation.
         Blocks until the target is reached or the user interrupts with Ctrl+C.
         """
+        
+        if az<-180 or az>540:
+            az %= 360
+        
         try:
             self.set_state("slewing")
             az_cmd, el_cmd = round(az), round(el)
@@ -474,17 +478,16 @@ class SourceTracking:
             # Retrieve current telescope position.
             current_az, _ = self.get_current_telescope_az_el()
             # Compute effective azimuth with boundary adjustments.
-            effective_az = self.compute_effective_azimuth(az, current_az)
-            
+            #effective_az = self.compute_effective_azimuth(az, current_az)
             # Command the telescope to point at the effective coordinates.
-            self.set_pointing(effective_az, el_cmd, override=override)
+            self.set_pointing(az_cmd, el_cmd, override=override)
             
             print(f"Slewing to Az={az_cmd}°, El={el_cmd}°...")
             self.update_gui_message(f"Slewing to Az={az_cmd}°, El={el_cmd}°")
             self.check_if_reached_target(az_cmd, el_cmd)
             
             # Update stored positions.
-            self.update_stored_positions(az_cmd, el_cmd, effective_az)
+            self.update_stored_positions(az_cmd, el_cmd, az_cmd)
 
             if home:
                 self.set_state("home")
@@ -498,6 +501,9 @@ class SourceTracking:
                 self.update_gui_message(f"Stowed")
                 self.reset_pointing_gui_inputs(True, True, False)
                 self.enable_pointing_gui_buttons()
+            elif tracking:
+                self.set_state("tracking")
+                # todo: GUI stuff
             else:
 
                 self.set_state("idle")
